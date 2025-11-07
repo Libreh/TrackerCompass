@@ -11,14 +11,23 @@ Simple yet powerful tracker compass mod for Fabric
 Config file is found at `config/trackercompass.json`.
 ```json5
 {
+  // How often (in ticks) the compass updates tracking direction (10 ticks = 0.5 seconds)
   "compassUpdateTicks": 10,
+  // Enable right-click GUI menu to select which player to track
   "enableTrackerGui": true,
+  // Display tracking information in the action bar above hotbar
   "actionBarInfo": true,
+  // Only show action bar info when holding the compass
   "onlyShowWhenHoldingCompass": true,
+  // Show distance in meters to the tracked player
   "showDistance": true,
+  // Show directional arrow (↑, →, ↓, ←, etc.) pointing to target
   "showDirectionArrow": true,
+  // Show status indicators like (Portal) or (Offline) after player name
   "showStatusIndicators": true,
+  // Automatically give compass to players when they join the server
   "giveCompassByDefault": false,
+  // Show offline players in the tracker GUI selection menu
   "showOfflinePlayersInGui": true
 }
 ```
