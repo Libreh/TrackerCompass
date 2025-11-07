@@ -3,7 +3,7 @@
 	"id": "trackercompass",
 	"version": "${version}",
 	"name": "Tracker Compass",
-	"description": "Simple yet powerful tracker compass mod for Fabric",
+	"description": "Simple yet powerful Manhunt tracker compass mod for Fabric",
 	"authors": [
 		"Libreh"
 	],

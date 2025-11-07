@@ -1,5 +1,5 @@
 # TrackerCompass
-Simple yet powerful tracker compass mod for Fabric
+Simple yet powerful Manhunt tracker compass mod for Fabric
 
 ## Commands and permissions
 | Command                   | Permission                                | Description                            |
