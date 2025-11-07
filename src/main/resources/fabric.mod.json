@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "trackercompass",
+	"version": "${version}",
+	"name": "Tracker Compass",
+	"description": "Simple yet powerful tracker compass mod for Fabric",
+	"authors": [
+		"Libreh"
+	],
+	"license": "CC0-1.0",
+	"icon": "assets/trackercompass/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "me.libreh.trackercompass.TrackerCompass"
+		]
+	},
+	"mixins": [
+      "trackercompass.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.6",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
