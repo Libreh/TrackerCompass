@@ -108,10 +108,6 @@ public class TrackerCompassGui extends SimpleGui {
                 .orElse("Unknown Player");
     }
 
-    private ItemStack createPlayerItem(ServerPlayerEntity target) {
-        return createPlayerItem(target.getUuid());
-    }
-
     private String getDimensionName(ServerPlayerEntity player) {
         if (player.getEntityWorld().getRegistryKey() == net.minecraft.world.World.OVERWORLD) {
             return "Overworld";
