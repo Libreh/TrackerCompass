@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -46,14 +47,14 @@ public class TrackerCompassGui extends SimpleGui {
     private List<UUID> getAllSelectablePlayers() {
         List<UUID> playerUuids = new ArrayList<>();
 
-        for (ServerPlayerEntity onlinePlayer : player.getServer().getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity onlinePlayer : player.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
             if (!onlinePlayer.getUuid().equals(player.getUuid())) {
                 playerUuids.add(onlinePlayer.getUuid());
             }
         }
 
         if (ConfigManager.getConfig().showOfflinePlayersInGui) {
-            TrackerCompassPersistentState persistentState = TrackerCompassPersistentState.get(player.getServer());
+            TrackerCompassPersistentState persistentState = TrackerCompassPersistentState.get(player.getEntityWorld().getServer());
 
             for (UUID offlineUuid : persistentState.getPlayerDimensionPositions().keySet()) {
                 if (!playerUuids.contains(offlineUuid) && !offlineUuid.equals(player.getUuid())) {
@@ -74,7 +75,7 @@ public class TrackerCompassGui extends SimpleGui {
 
         List<Text> lore = new ArrayList<>();
 
-        ServerPlayerEntity targetPlayer = this.player.getServer().getPlayerManager().getPlayer(targetUuid);
+        ServerPlayerEntity targetPlayer = this.player.getEntityWorld().getServer().getPlayerManager().getPlayer(targetUuid);
         boolean isOnline = targetPlayer != null;
         Formatting formatting = isOnline ? Formatting.GREEN : Formatting.GRAY;
         lore.add(Text.literal("Status: " + (isOnline ? "Online" : "Offline")).styled(s -> s.withFormatting(formatting).withItalic(false)));
@@ -83,8 +84,8 @@ public class TrackerCompassGui extends SimpleGui {
             String dimension = getDimensionName(targetPlayer);
             lore.add(Text.literal("Dimension: " + dimension).styled(s -> s.withFormatting(Formatting.YELLOW).withItalic(false)));
 
-            if (targetPlayer.getWorld() == this.player.getWorld()) {
-                double distance = this.player.getPos().distanceTo(targetPlayer.getPos());
+            if (targetPlayer.getEntityWorld() == this.player.getEntityWorld()) {
+                double distance = this.player.getEntityPos().distanceTo(targetPlayer.getEntityPos());
                 lore.add(Text.literal("Distance: " + (int)distance + "m").styled(s -> s.withFormatting(Formatting.GOLD).withItalic(false)));
             }
         }
@@ -97,14 +98,14 @@ public class TrackerCompassGui extends SimpleGui {
     }
 
     private String getPlayerName(UUID uuid) {
-        ServerPlayerEntity onlinePlayer = this.player.getServer().getPlayerManager().getPlayer(uuid);
+        ServerPlayerEntity onlinePlayer = this.player.getEntityWorld().getServer().getPlayerManager().getPlayer(uuid);
         if (onlinePlayer != null) {
             return onlinePlayer.getName().getString();
         }
 
-        return this.player.getServer().getUserCache()
+        return this.player.getEntityWorld().getServer().getApiServices().nameToIdCache()
                 .getByUuid(uuid)
-                .map(GameProfile::getName)
+                .map(PlayerConfigEntry::name)
                 .orElse("Unknown Player");
     }
 
@@ -113,11 +114,11 @@ public class TrackerCompassGui extends SimpleGui {
     }
 
     private String getDimensionName(ServerPlayerEntity player) {
-        if (player.getWorld().getRegistryKey() == net.minecraft.world.World.OVERWORLD) {
+        if (player.getEntityWorld().getRegistryKey() == net.minecraft.world.World.OVERWORLD) {
             return "Overworld";
-        } else if (player.getWorld().getRegistryKey() == net.minecraft.world.World.NETHER) {
+        } else if (player.getEntityWorld().getRegistryKey() == net.minecraft.world.World.NETHER) {
             return "Nether";
-        } else if (player.getWorld().getRegistryKey() == net.minecraft.world.World.END) {
+        } else if (player.getEntityWorld().getRegistryKey() == net.minecraft.world.World.END) {
             return "End";
         }
         return "Unknown";
@@ -133,7 +134,7 @@ public class TrackerCompassGui extends SimpleGui {
                 UUID selectedUuid = selectablePlayers.get(index);
                 String selectedName = getPlayerName(selectedUuid);
 
-                TrackerCompassPersistentState.get(player.getServer())
+                TrackerCompassPersistentState.get(player.getEntityWorld().getServer())
                         .setTargetPlayer(player.getUuid(), selectedUuid);
 
                 player.sendMessage(Text.literal("Tracking: " + selectedName).formatted(Formatting.GOLD), false);

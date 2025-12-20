@@ -1,6 +1,5 @@
 package me.libreh.trackercompass;
 
-import com.mojang.authlib.GameProfile;
 import me.libreh.trackercompass.command.ToggleCommand;
 import me.libreh.trackercompass.command.TrackerCompassCommand;
 import me.libreh.trackercompass.config.ConfigManager;
@@ -22,6 +21,7 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -118,7 +118,7 @@ public class TrackerCompass implements ModInitializer {
             }
 
             UUID playerId = player.getUuid();
-            RegistryKey<World> dimension = player.getWorld().getRegistryKey();
+            RegistryKey<World> dimension = player.getEntityWorld().getRegistryKey();
             BlockPos position = player.getBlockPos();
 
             persistentState.updatePlayerPosition(playerId, dimension, position);
@@ -207,7 +207,7 @@ public class TrackerCompass implements ModInitializer {
             return;
         }
 
-        RegistryKey<World> observerDimension = player.getWorld().getRegistryKey();
+        RegistryKey<World> observerDimension = player.getEntityWorld().getRegistryKey();
         updateTrackerCompassesInInventory(player, targetPos, observerDimension);
     }
 
@@ -216,10 +216,10 @@ public class TrackerCompass implements ModInitializer {
             return null;
         }
 
-        RegistryKey<World> observerDimension = observer.getWorld().getRegistryKey();
+        RegistryKey<World> observerDimension = observer.getEntityWorld().getRegistryKey();
 
         ServerPlayerEntity targetPlayer = server.getPlayerManager().getPlayer(targetUuid);
-        if (targetPlayer != null && targetPlayer.getWorld().getRegistryKey().equals(observerDimension)) {
+        if (targetPlayer != null && targetPlayer.getEntityWorld().getRegistryKey().equals(observerDimension)) {
             return targetPlayer.getBlockPos();
         }
 
@@ -325,14 +325,14 @@ public class TrackerCompass implements ModInitializer {
             targetName = targetPlayerEntity.getName().getString();
 
             if (ConfigManager.getConfig().showStatusIndicators &&
-                !targetPlayerEntity.getWorld().getRegistryKey().equals(player.getWorld().getRegistryKey())) {
+                !targetPlayerEntity.getEntityWorld().getRegistryKey().equals(player.getEntityWorld().getRegistryKey())) {
                 targetName += " (Portal)";
             }
         } else {
-            Optional<GameProfile> gameProfile = server.getUserCache().getByUuid(targetUuid);
+            Optional<PlayerConfigEntry> playerConfigEntry = server.getApiServices().nameToIdCache().getByUuid(targetUuid);
 
-            if (gameProfile.isPresent()) {
-                targetName = gameProfile.get().getName();
+            if (playerConfigEntry.isPresent()) {
+                targetName = playerConfigEntry.get().name();
             } else {
                 targetName = "Player";
             }
