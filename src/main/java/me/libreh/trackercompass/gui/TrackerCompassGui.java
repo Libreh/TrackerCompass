@@ -77,8 +77,11 @@ public class TrackerCompassGui extends SimpleGui {
 
         ServerPlayerEntity targetPlayer = this.player.getEntityWorld().getServer().getPlayerManager().getPlayer(targetUuid);
         boolean isOnline = targetPlayer != null;
-        Formatting formatting = isOnline ? Formatting.GREEN : Formatting.GRAY;
-        lore.add(Text.literal("Status: " + (isOnline ? "Online" : "Offline")).styled(s -> s.withFormatting(formatting).withItalic(false)));
+
+        if (ConfigManager.getConfig().showOfflinePlayersInGui) {
+            Formatting formatting = isOnline ? Formatting.GREEN : Formatting.GRAY;
+            lore.add(Text.literal("Status: " + (isOnline ? "Online" : "Offline")).styled(s -> s.withFormatting(formatting).withItalic(false)));
+        }
 
         if (isOnline) {
             String dimension = DimensionHelper.getName(targetPlayer);
