@@ -5,6 +5,7 @@ import eu.pb4.sgui.api.elements.GuiElementInterface;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassPersistentState;
+import me.libreh.trackercompass.util.DimensionHelper;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.item.ItemStack;
@@ -80,7 +81,7 @@ public class TrackerCompassGui extends SimpleGui {
         lore.add(Text.literal("Status: " + (isOnline ? "Online" : "Offline")).styled(s -> s.withFormatting(formatting).withItalic(false)));
 
         if (isOnline) {
-            String dimension = getDimensionName(targetPlayer);
+            String dimension = DimensionHelper.getName(targetPlayer);
             lore.add(Text.literal("Dimension: " + dimension).styled(s -> s.withFormatting(Formatting.YELLOW).withItalic(false)));
 
             if (targetPlayer.getEntityWorld() == this.player.getEntityWorld()) {
@@ -106,17 +107,6 @@ public class TrackerCompassGui extends SimpleGui {
                 .getByUuid(uuid)
                 .map(PlayerConfigEntry::name)
                 .orElse("Unknown Player");
-    }
-
-    private String getDimensionName(ServerPlayerEntity player) {
-        if (player.getEntityWorld().getRegistryKey() == net.minecraft.world.World.OVERWORLD) {
-            return "Overworld";
-        } else if (player.getEntityWorld().getRegistryKey() == net.minecraft.world.World.NETHER) {
-            return "Nether";
-        } else if (player.getEntityWorld().getRegistryKey() == net.minecraft.world.World.END) {
-            return "End";
-        }
-        return "Unknown";
     }
 
     @Override
