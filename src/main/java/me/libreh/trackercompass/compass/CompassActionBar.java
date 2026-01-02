@@ -2,8 +2,8 @@ package me.libreh.trackercompass.compass;
 
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassPersistentState;
-import me.libreh.trackercompass.tracking.PlayerDimensionPositions;
 import me.libreh.trackercompass.util.DirectionArrow;
+import me.libreh.trackercompass.util.PlayerDimensionUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerConfigEntry;
@@ -71,7 +71,7 @@ public class CompassActionBar {
     }
 
     private Text buildActionBarText(ServerPlayerEntity player, UUID targetUuid, MinecraftServer server) {
-        BlockPos targetPos = findPlayerInDimension(targetUuid, player, server);
+        BlockPos targetPos = PlayerDimensionUtil.findPlayerInDimension(targetUuid, player, server, persistentState);
         if (targetPos == null) {
             return null;
         }
@@ -115,21 +115,5 @@ public class CompassActionBar {
         }
 
         return Text.literal(actionBarFormat).formatted(Formatting.AQUA);
-    }
-
-    private BlockPos findPlayerInDimension(UUID targetUuid, ServerPlayerEntity observer, MinecraftServer server) {
-        var observerDimension = observer.getEntityWorld().getRegistryKey();
-
-        ServerPlayerEntity targetPlayer = server.getPlayerManager().getPlayer(targetUuid);
-        if (targetPlayer != null && targetPlayer.getEntityWorld().getRegistryKey().equals(observerDimension)) {
-            return targetPlayer.getBlockPos();
-        }
-
-        PlayerDimensionPositions dimPositions = persistentState.getPlayerDimensionPositions().get(targetUuid);
-        if (dimPositions == null) {
-            return null;
-        }
-
-        return dimPositions.getPosition(observerDimension);
     }
 }

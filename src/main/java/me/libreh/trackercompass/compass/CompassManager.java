@@ -2,7 +2,7 @@ package me.libreh.trackercompass.compass;
 
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassPersistentState;
-import me.libreh.trackercompass.tracking.PlayerDimensionPositions;
+import me.libreh.trackercompass.util.PlayerDimensionUtil;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LodestoneTrackerComponent;
 import net.minecraft.item.ItemStack;
@@ -87,29 +87,13 @@ public class CompassManager {
             return;
         }
 
-        BlockPos targetPos = findPlayerInDimension(targetUuid, player, server);
+        BlockPos targetPos = PlayerDimensionUtil.findPlayerInDimension(targetUuid, player, server, persistentState);
         if (targetPos == null) {
             return;
         }
 
         RegistryKey<World> observerDimension = player.getEntityWorld().getRegistryKey();
         updateTrackerCompassesInInventory(player, targetPos, observerDimension);
-    }
-
-    private BlockPos findPlayerInDimension(UUID targetUuid, ServerPlayerEntity observer, MinecraftServer server) {
-        RegistryKey<World> observerDimension = observer.getEntityWorld().getRegistryKey();
-
-        ServerPlayerEntity targetPlayer = server.getPlayerManager().getPlayer(targetUuid);
-        if (targetPlayer != null && targetPlayer.getEntityWorld().getRegistryKey().equals(observerDimension)) {
-            return targetPlayer.getBlockPos();
-        }
-
-        PlayerDimensionPositions dimPositions = persistentState.getPlayerDimensionPositions().get(targetUuid);
-        if (dimPositions == null) {
-            return null;
-        }
-
-        return dimPositions.getPosition(observerDimension);
     }
 
     private void updateTrackerCompassesInInventory(ServerPlayerEntity player, BlockPos targetPos, RegistryKey<World> dimension) {

@@ -1,6 +1,6 @@
 package me.libreh.trackercompass.config;
 
-public class TrackerCompassConfig {
+public class Config {
     public int compassUpdateTicks = 10;
     public boolean enableTrackerGui = true;
     public boolean actionBarInfo = true;

@@ -16,19 +16,19 @@ public class ConfigManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     public static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir();
-    public static final String FILE_NAME = "trackercompass.json";
-    public static final Path FILE_PATH = CONFIG_DIR.resolve(FILE_NAME);
+    public static final String CONFIG_NAME = "trackercompass.json";
+    public static final Path CONFIG_PATH = CONFIG_DIR.resolve(CONFIG_NAME);
 
-    private static TrackerCompassConfig CONFIG;
+    private static Config CONFIG;
 
     public static boolean load() {
-        TrackerCompassConfig oldConfig = CONFIG;
+        Config oldConfig = CONFIG;
         boolean success;
 
-        try (FileReader reader = new FileReader(FILE_PATH.toFile())) {
-            TrackerCompassConfig config = GSON.fromJson(reader, TrackerCompassConfig.class);
+        try (FileReader reader = new FileReader(CONFIG_PATH.toFile())) {
+            Config config = GSON.fromJson(reader, Config.class);
             if (config == null) {
-                TrackerCompass.LOGGER.error("Failed to load " + FILE_NAME + ": Config parsed as null");
+                TrackerCompass.LOGGER.error("Failed to load " + CONFIG_NAME + ": Config parsed as null");
                 CONFIG = oldConfig;
                 return false;
             }
@@ -36,12 +36,12 @@ public class ConfigManager {
             save();
             success = true;
         } catch (FileNotFoundException e) {
-            TrackerCompass.LOGGER.info("Creating default config " + FILE_NAME);
-            CONFIG = new TrackerCompassConfig();
+            TrackerCompass.LOGGER.info("Creating default config " + CONFIG_NAME);
+            CONFIG = new Config();
             save();
             success = true;
         } catch (IOException | JsonSyntaxException e) {
-            TrackerCompass.LOGGER.error("Failed to read config " + FILE_NAME, e);
+            TrackerCompass.LOGGER.error("Failed to read config " + CONFIG_NAME, e);
             CONFIG = oldConfig;
             success = false;
         }
@@ -51,15 +51,15 @@ public class ConfigManager {
 
     public static void save() {
         try {
-            Files.createDirectories(FILE_PATH.getParent());
+            Files.createDirectories(CONFIG_PATH.getParent());
             String json = GSON.toJson(CONFIG);
-            Files.writeString(FILE_PATH, json);
+            Files.writeString(CONFIG_PATH, json);
         } catch (IOException e) {
-            TrackerCompass.LOGGER.error("Failed to save config " + FILE_NAME, e);
+            TrackerCompass.LOGGER.error("Failed to save config " + CONFIG_NAME, e);
         }
     }
 
-    public static TrackerCompassConfig getConfig() {
+    public static Config getConfig() {
         return CONFIG;
     }
 }
