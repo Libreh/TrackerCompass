@@ -3,11 +3,15 @@
 	"id": "trackercompass",
 	"version": "${version}",
 	"name": "Tracker Compass",
-	"description": "Simple yet powerful Manhunt tracker compass mod for Fabric",
+	"description": "Feature-rich Manhunt tracker compass mod for Fabric",
 	"authors": [
 		"Libreh"
 	],
-	"license": "CC0-1.0",
+    "contact": {
+      "homepage": "https://github.com/Libreh",
+      "sources": "https://github.com/Libreh/TrackerCompass"
+    },
+    "license": "LGPLv3",
 	"icon": "assets/trackercompass/icon.png",
 	"environment": "*",
 	"entrypoints": {
