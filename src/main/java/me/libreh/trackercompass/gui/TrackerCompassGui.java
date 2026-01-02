@@ -5,9 +5,11 @@ import eu.pb4.sgui.api.elements.GuiElementInterface;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassPersistentState;
-import me.libreh.trackercompass.util.DimensionHelper;
+import me.libreh.trackercompass.util.PlayerDimensionUtil;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
+import net.minecraft.component.type.ProfileComponent;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
@@ -73,6 +75,9 @@ public class TrackerCompassGui extends SimpleGui {
         item.set(DataComponentTypes.CUSTOM_NAME,
                 Text.literal(playerName).styled(s -> s.withItalic(false).withFormatting(Formatting.AQUA)));
 
+        item.set(DataComponentTypes.PROFILE, ProfileComponent.ofDynamic(playerName));
+        item.set(DataComponentTypes.TOOLTIP_DISPLAY, TooltipDisplayComponent.DEFAULT.with(DataComponentTypes.PROFILE, true));
+
         List<Text> lore = new ArrayList<>();
 
         ServerPlayerEntity targetPlayer = this.player.getEntityWorld().getServer().getPlayerManager().getPlayer(targetUuid);
@@ -84,7 +89,7 @@ public class TrackerCompassGui extends SimpleGui {
         }
 
         if (isOnline) {
-            String dimension = DimensionHelper.getName(targetPlayer);
+            String dimension = PlayerDimensionUtil.getName(targetPlayer);
             lore.add(Text.literal("Dimension: " + dimension).styled(s -> s.withFormatting(Formatting.YELLOW).withItalic(false)));
 
             if (targetPlayer.getEntityWorld() == this.player.getEntityWorld()) {
