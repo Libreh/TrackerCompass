@@ -1,5 +1,5 @@
 # TrackerCompass
-Feature-rich Manhunt tracker compass mod for Fabric
+Feature-rich Manhunt tracker compass mod for Fabric.
 
 ## Commands and permissions
 
