@@ -1,12 +1,14 @@
 # TrackerCompass
-Simple yet powerful Manhunt tracker compass mod for Fabric
+Feature-rich Manhunt tracker compass mod for Fabric.
 
 ## Commands and permissions
-| Command                   | Permission                                | Description                            |
-|---------------------------|-------------------------------------------|----------------------------------------|
-| /trackercompass           | trackercompass.commands.main (default)    | Sends information about trackercompass |
-| /trackercompass reload    | trackercompass.commands.reload (op 4)     | Reloads mods config                    |
-| /tracker, /compass, /hunt | trackercompass.commands.tracker (default) | Toggles compass item                   |
+
+| Command                   | Permission                                | Description          |
+|---------------------------|-------------------------------------------|----------------------|
+| /trackercompass           | trackercompass.commands.main (default)    | About info           |
+| /trackercompass reload    | trackercompass.commands.reload (op 4)     | Reloads mods config  |
+| /tracker, /compass, /hunt | trackercompass.commands.tracker (default) | Toggles compass item |
+
 ## Configuration
 Config file is found at `config/trackercompass.json`.
 ```json5
