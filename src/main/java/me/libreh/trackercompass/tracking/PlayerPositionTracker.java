@@ -1,31 +1,31 @@
 package me.libreh.trackercompass.tracking;
 
-import me.libreh.trackercompass.data.TrackerCompassPersistentState;
-import net.minecraft.registry.RegistryKey;
+import me.libreh.trackercompass.data.TrackerCompassSavedData;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 
 import java.util.UUID;
 
 public class PlayerPositionTracker {
-    private final TrackerCompassPersistentState persistentState;
+    private final TrackerCompassSavedData persistentState;
 
-    public PlayerPositionTracker(TrackerCompassPersistentState persistentState) {
+    public PlayerPositionTracker(TrackerCompassSavedData persistentState) {
         this.persistentState = persistentState;
     }
 
     public void updateAllPositions(MinecraftServer server) {
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            if (player.isDead()) {
-                persistentState.clearPlayerPositions(player.getUuid());
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            if (!player.isAlive()) {
+                persistentState.clearPlayerPositions(player.getUUID());
                 continue;
             }
 
-            UUID playerId = player.getUuid();
-            RegistryKey<World> dimension = player.getEntityWorld().getRegistryKey();
-            BlockPos position = player.getBlockPos();
+            UUID playerId = player.getUUID();
+            ResourceKey<Level> dimension = player.level().dimension();
+            BlockPos position = player.blockPosition();
 
             persistentState.updatePlayerPosition(playerId, dimension, position);
         }

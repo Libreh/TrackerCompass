@@ -6,7 +6,7 @@ import me.libreh.trackercompass.compass.CompassActionBar;
 import me.libreh.trackercompass.compass.CompassManager;
 import me.libreh.trackercompass.compass.TrackerCompassItem;
 import me.libreh.trackercompass.config.ConfigManager;
-import me.libreh.trackercompass.data.TrackerCompassPersistentState;
+import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import me.libreh.trackercompass.gui.TrackerCompassGui;
 import me.libreh.trackercompass.tracking.PlayerPositionTracker;
 import me.libreh.trackercompass.util.GenericModInfo;
@@ -18,13 +18,13 @@ import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,7 @@ public class TrackerCompass implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static ModContainer CONTAINER = FabricLoader.getInstance().getModContainer(MOD_ID).get();
     private int ticksSinceLastUpdate = 0;
-    private TrackerCompassPersistentState persistentState;
+    private TrackerCompassSavedData persistentState;
     private PlayerPositionTracker positionTracker;
     private static CompassManager compassManager;
     private CompassActionBar compassActionBar;
@@ -64,7 +64,7 @@ public class TrackerCompass implements ModInitializer {
 	}
 
     private void onServerStarted(MinecraftServer server) {
-        persistentState = TrackerCompassPersistentState.get(server);
+        persistentState = TrackerCompassSavedData.get(server);
 
         positionTracker = new PlayerPositionTracker(persistentState);
         compassManager = new CompassManager(persistentState);
@@ -75,9 +75,9 @@ public class TrackerCompass implements ModInitializer {
 
     private void onServerStopping(MinecraftServer server) {
         if (persistentState != null) {
-            var overworld = server.getWorld(World.OVERWORLD);
+            var overworld = server.getLevel(Level.OVERWORLD);
             if (overworld != null) {
-                overworld.getPersistentStateManager().save();
+                overworld.getDataStorage().saveAndJoin();
                 LOGGER.info("TrackerCompass persistent state saved");
             }
         }
@@ -94,23 +94,23 @@ public class TrackerCompass implements ModInitializer {
         }
     }
 
-    private ActionResult onItemUse(PlayerEntity player, World world, Hand hand) {
-        if (!(player instanceof ServerPlayerEntity serverPlayer)) {
-            return ActionResult.PASS;
+    private InteractionResult onItemUse(Player player, Level level, InteractionHand hand) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return InteractionResult.PASS;
         }
 
-        ItemStack stack = player.getStackInHand(hand);
+        ItemStack stack = player.getItemInHand(hand);
 
         if (TrackerCompassItem.isTrackerCompass(stack) && ConfigManager.getConfig().enableTrackerGui) {
             TrackerCompassGui gui = new TrackerCompassGui(serverPlayer);
             gui.open();
-            return ActionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 
-    public static void updatePlayerCompassImmediate(ServerPlayerEntity player) {
+    public static void updatePlayerCompassImmediate(ServerPlayer player) {
         if (compassManager != null) {
             compassManager.updatePlayerCompassImmediate(player);
         }

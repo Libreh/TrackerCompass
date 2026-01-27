@@ -1,37 +1,37 @@
 package me.libreh.trackercompass.util;
 
-import me.libreh.trackercompass.data.TrackerCompassPersistentState;
+import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import me.libreh.trackercompass.tracking.PlayerDimensionPositions;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 
 import java.util.UUID;
 
 public class PlayerDimensionUtil {
-    public static String getName(RegistryKey<World> dimension) {
-        if (dimension == World.OVERWORLD) {
+    public static String getName(ResourceKey<Level> dimension) {
+        if (dimension == Level.OVERWORLD) {
             return "Overworld";
-        } else if (dimension == World.NETHER) {
+        } else if (dimension == Level.NETHER) {
             return "Nether";
-        } else if (dimension == World.END) {
+        } else if (dimension == Level.END) {
             return "End";
         }
         return "Unknown";
     }
 
-    public static String getName(ServerPlayerEntity player) {
-        return getName(player.getEntityWorld().getRegistryKey());
+    public static String getName(ServerPlayer player) {
+        return getName(player.level().dimension());
     }
 
-    public static BlockPos findPlayerInDimension(UUID targetUuid, ServerPlayerEntity observer, MinecraftServer server, TrackerCompassPersistentState persistentState) {
-        RegistryKey<World> observerDimension = observer.getEntityWorld().getRegistryKey();
+    public static BlockPos findPlayerInDimension(UUID targetUuid, ServerPlayer observer, MinecraftServer server, TrackerCompassSavedData persistentState) {
+        ResourceKey<Level> observerDimension = observer.level().dimension();
 
-        ServerPlayerEntity targetPlayer = server.getPlayerManager().getPlayer(targetUuid);
-        if (targetPlayer != null && targetPlayer.getEntityWorld().getRegistryKey().equals(observerDimension)) {
-            return targetPlayer.getBlockPos();
+        ServerPlayer targetPlayer = server.getPlayerList().getPlayer(targetUuid);
+        if (targetPlayer != null && targetPlayer.level().dimension().equals(observerDimension)) {
+            return targetPlayer.blockPosition();
         }
 
         PlayerDimensionPositions dimPositions = persistentState.getPlayerDimensionPositions().get(targetUuid);

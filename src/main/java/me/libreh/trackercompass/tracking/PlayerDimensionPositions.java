@@ -1,8 +1,8 @@
 package me.libreh.trackercompass.tracking;
 
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 
 public class PlayerDimensionPositions {
     private BlockPos overworldPos = null;
@@ -30,22 +30,22 @@ public class PlayerDimensionPositions {
         return endPos;
     }
 
-    public void setPosition(RegistryKey<World> dimension, BlockPos pos) {
-        if (dimension.equals(World.OVERWORLD)) {
+    public void setPosition(ResourceKey<Level> dimension, BlockPos pos) {
+        if (dimension.equals(Level.OVERWORLD)) {
             overworldPos = pos;
-        } else if (dimension.equals(World.NETHER)) {
+        } else if (dimension.equals(Level.NETHER)) {
             netherPos = pos;
-        } else if (dimension.equals(World.END)) {
+        } else if (dimension.equals(Level.END)) {
             endPos = pos;
         }
     }
 
-    public BlockPos getPosition(RegistryKey<World> dimension) {
-        if (dimension.equals(World.OVERWORLD)) {
+    public BlockPos getPosition(ResourceKey<Level> dimension) {
+        if (dimension.equals(Level.OVERWORLD)) {
             return overworldPos;
-        } else if (dimension.equals(World.NETHER)) {
+        } else if (dimension.equals(Level.NETHER)) {
             return netherPos;
-        } else if (dimension.equals(World.END)) {
+        } else if (dimension.equals(Level.END)) {
             return endPos;
         }
         return null;

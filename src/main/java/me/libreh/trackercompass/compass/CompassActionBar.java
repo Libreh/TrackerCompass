@@ -1,16 +1,16 @@
 package me.libreh.trackercompass.compass;
 
 import me.libreh.trackercompass.config.ConfigManager;
-import me.libreh.trackercompass.data.TrackerCompassPersistentState;
+import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import me.libreh.trackercompass.util.DirectionArrow;
 import me.libreh.trackercompass.util.PlayerDimensionUtil;
-import net.minecraft.item.ItemStack;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,10 +18,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class CompassActionBar {
-    private final TrackerCompassPersistentState persistentState;
+    private final TrackerCompassSavedData persistentState;
     private final Map<UUID, Boolean> wasHoldingCompass = new HashMap<>();
 
-    public CompassActionBar(TrackerCompassPersistentState persistentState) {
+    public CompassActionBar(TrackerCompassSavedData persistentState) {
         this.persistentState = persistentState;
     }
 
@@ -30,8 +30,8 @@ public class CompassActionBar {
             return;
         }
 
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            UUID playerId = player.getUuid();
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            UUID playerId = player.getUUID();
             boolean currentlyHolding = isPlayerHoldingTrackerCompass(player);
             Boolean wasHolding = wasHoldingCompass.get(playerId);
 
@@ -39,7 +39,7 @@ public class CompassActionBar {
 
             if (ConfigManager.getConfig().onlyShowWhenHoldingCompass) {
                 if (wasHolding != null && wasHolding && !currentlyHolding) {
-                    player.sendMessage(Text.empty(), true);
+                    player.sendSystemMessage(Component.empty(), true);
                     continue;
                 }
             }
@@ -48,35 +48,35 @@ public class CompassActionBar {
                 continue;
             }
 
-            UUID targetUuid = persistentState.getTargetPlayer(player.getUuid());
+            UUID targetUuid = persistentState.getTargetPlayer(player.getUUID());
             if (targetUuid == null) {
                 continue;
             }
 
-            Text actionBarText = buildActionBarText(player, targetUuid, server);
+            Component actionBarText = buildActionBarText(player, targetUuid, server);
             if (actionBarText != null) {
-                player.sendMessage(actionBarText, true);
+                player.sendSystemMessage(actionBarText, true);
             }
         }
     }
 
-    public void onPlayerDisconnect(ServerPlayerEntity player) {
-        wasHoldingCompass.remove(player.getUuid());
+    public void onPlayerDisconnect(ServerPlayer player) {
+        wasHoldingCompass.remove(player.getUUID());
     }
 
-    private boolean isPlayerHoldingTrackerCompass(ServerPlayerEntity player) {
-        ItemStack mainHand = player.getMainHandStack();
-        ItemStack offHand = player.getOffHandStack();
+    private boolean isPlayerHoldingTrackerCompass(ServerPlayer player) {
+        ItemStack mainHand = player.getMainHandItem();
+        ItemStack offHand = player.getOffhandItem();
         return TrackerCompassItem.isTrackerCompass(mainHand) || TrackerCompassItem.isTrackerCompass(offHand);
     }
 
-    private Text buildActionBarText(ServerPlayerEntity player, UUID targetUuid, MinecraftServer server) {
+    private Component buildActionBarText(ServerPlayer player, UUID targetUuid, MinecraftServer server) {
         BlockPos targetPos = PlayerDimensionUtil.findPlayerInDimension(targetUuid, player, server, persistentState);
         if (targetPos == null) {
             return null;
         }
 
-        double distance = Math.sqrt(player.getBlockPos().getSquaredDistance(targetPos));
+        double distance = Math.sqrt(player.blockPosition().distSqr(targetPos));
 
         String arrow = "";
         if (ConfigManager.getConfig().showDirectionArrow) {
@@ -84,17 +84,17 @@ public class CompassActionBar {
         }
 
         String targetName;
-        ServerPlayerEntity targetPlayerEntity = server.getPlayerManager().getPlayer(targetUuid);
+        ServerPlayer targetPlayerEntity = server.getPlayerList().getPlayer(targetUuid);
 
         if (targetPlayerEntity != null) {
             targetName = targetPlayerEntity.getName().getString();
 
             if (ConfigManager.getConfig().showStatusIndicators &&
-                !targetPlayerEntity.getEntityWorld().getRegistryKey().equals(player.getEntityWorld().getRegistryKey())) {
+                !targetPlayerEntity.level().dimension().equals(player.level().dimension())) {
                 targetName += " (Portal)";
             }
         } else {
-            Optional<PlayerConfigEntry> playerConfigEntry = server.getApiServices().nameToIdCache().getByUuid(targetUuid);
+            Optional<NameAndId> playerConfigEntry = server.services().nameToIdCache().get(targetUuid);
 
             if (playerConfigEntry.isPresent()) {
                 targetName = playerConfigEntry.get().name();
@@ -114,6 +114,6 @@ public class CompassActionBar {
             actionBarFormat = String.format("%s[%s]", arrow, targetName);
         }
 
-        return Text.literal(actionBarFormat).formatted(Formatting.AQUA);
+        return Component.literal(actionBarFormat).withStyle(ChatFormatting.AQUA);
     }
 }

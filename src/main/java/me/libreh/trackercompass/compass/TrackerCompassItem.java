@@ -1,39 +1,39 @@
 package me.libreh.trackercompass.compass;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 
 public class TrackerCompassItem {
     public static final String NBT_TRACKER = "trackercompass:tracker";
     public static final String NBT_REMOVE = "trackercompass:remove";
-    private static final Style STYLE = Style.EMPTY.withColor(Formatting.LIGHT_PURPLE).withItalic(false);
+    private static final Style STYLE = Style.EMPTY.withColor(ChatFormatting.LIGHT_PURPLE).withItalic(false);
 
     public static ItemStack create() {
         ItemStack compass = new ItemStack(Items.COMPASS);
-        NbtCompound nbt = new NbtCompound();
+        CompoundTag tag = new CompoundTag();
 
-        nbt.putBoolean(NBT_REMOVE, true);
-        nbt.putBoolean(NBT_TRACKER, true);
+        tag.putBoolean(NBT_REMOVE, true);
+        tag.putBoolean(NBT_TRACKER, true);
 
-        compass.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
-        compass.set(DataComponentTypes.CUSTOM_NAME,
-                Text.literal("Tracker Compass").setStyle(STYLE));
+        compass.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        compass.set(DataComponents.CUSTOM_NAME,
+                Component.literal("Tracker Compass").setStyle(STYLE));
         return compass;
     }
 
     public static boolean isTrackerCompass(ItemStack stack) {
-        if (!stack.isOf(Items.COMPASS)) return false;
+        if (!stack.is(Items.COMPASS)) return false;
 
-        NbtComponent customData = stack.get(DataComponentTypes.CUSTOM_DATA);
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) return false;
 
-        NbtCompound nbt = customData.copyNbt();
-        return nbt.contains(NBT_TRACKER) && nbt.getBoolean(NBT_TRACKER).orElse(false);
+        CompoundTag tag = customData.copyTag();
+        return tag.contains(NBT_TRACKER) && tag.getBoolean(NBT_TRACKER).orElse(false);
     }
 }

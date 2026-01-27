@@ -4,36 +4,36 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.libreh.trackercompass.TrackerCompass;
-import me.libreh.trackercompass.data.TrackerCompassPersistentState;
+import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.UUID;
 
 public class ToggleCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        LiteralCommandNode<ServerCommandSource> trackerCommandNode = dispatcher.register(CommandManager.literal("tracker")
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        LiteralCommandNode<CommandSourceStack> trackerCommandNode = dispatcher.register(Commands.literal("tracker")
                 .requires(source -> Permissions.check(source, "manhunt.commands.tracker", true))
                 .executes(ToggleCommand::toggleOwnCompass)
         );
-        dispatcher.register(CommandManager.literal("compass").redirect(trackerCommandNode));
-        dispatcher.register(CommandManager.literal("hunt").redirect(trackerCommandNode));
+        dispatcher.register(Commands.literal("compass").redirect(trackerCommandNode));
+        dispatcher.register(Commands.literal("hunt").redirect(trackerCommandNode));
     }
 
-    private static int toggleOwnCompass(CommandContext<ServerCommandSource> context) {
-        ServerCommandSource source = context.getSource();
+    private static int toggleOwnCompass(CommandContext<CommandSourceStack> context) {
+        CommandSourceStack source = context.getSource();
 
-        if (!(source.getEntity() instanceof ServerPlayerEntity player)) {
-            source.sendError(Text.literal("This command can only be used by players"));
+        if (!(source.getEntity() instanceof ServerPlayer player)) {
+            source.sendFailure(Component.literal("This command can only be used by players"));
             return 0;
         }
 
-        TrackerCompassPersistentState persistentState = TrackerCompassPersistentState.get(source.getServer());
-        UUID playerId = player.getUuid();
+        TrackerCompassSavedData persistentState = TrackerCompassSavedData.get(source.getServer());
+        UUID playerId = player.getUUID();
 
         Boolean currentToggle = persistentState.getPlayerCompassToggle(playerId);
         boolean newState = currentToggle == null || !currentToggle;
@@ -43,11 +43,11 @@ public class ToggleCommand {
         TrackerCompass.updatePlayerCompassImmediate(player);
 
         if (newState) {
-            source.sendFeedback(() -> Text.literal("Tracker compass enabled!")
-                    .formatted(Formatting.GREEN), false);
+            source.sendSuccess(() -> Component.literal("Tracker compass enabled!")
+                    .withStyle(ChatFormatting.GREEN), false);
         } else {
-            source.sendFeedback(() -> Text.literal("Tracker compass disabled!")
-                    .formatted(Formatting.RED), false);
+            source.sendSuccess(() -> Component.literal("Tracker compass disabled!")
+                    .withStyle(ChatFormatting.RED), false);
         }
 
         return 1;

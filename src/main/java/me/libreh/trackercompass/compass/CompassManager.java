@@ -1,30 +1,30 @@
 package me.libreh.trackercompass.compass;
 
 import me.libreh.trackercompass.config.ConfigManager;
-import me.libreh.trackercompass.data.TrackerCompassPersistentState;
+import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import me.libreh.trackercompass.util.PlayerDimensionUtil;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.LodestoneTrackerComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.LodestoneTracker;
+import net.minecraft.world.level.Level;
 
 import java.util.Optional;
 import java.util.UUID;
 
 public class CompassManager {
-    private final TrackerCompassPersistentState persistentState;
+    private final TrackerCompassSavedData persistentState;
 
-    public CompassManager(TrackerCompassPersistentState persistentState) {
+    public CompassManager(TrackerCompassSavedData persistentState) {
         this.persistentState = persistentState;
     }
 
     public void updateAllCompasses(MinecraftServer server) {
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             if (shouldPlayerHaveCompass(player)) {
                 ensurePlayerHasOneTrackerCompass(player);
             } else {
@@ -32,12 +32,12 @@ public class CompassManager {
             }
         }
 
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             updatePlayerCompass(player, server);
         }
     }
 
-    public void updatePlayerCompassImmediate(ServerPlayerEntity player) {
+    public void updatePlayerCompassImmediate(ServerPlayer player) {
         if (shouldPlayerHaveCompass(player)) {
             ensurePlayerHasOneTrackerCompass(player);
         } else {
@@ -45,44 +45,44 @@ public class CompassManager {
         }
     }
 
-    private boolean shouldPlayerHaveCompass(ServerPlayerEntity player) {
-        Boolean playerToggle = persistentState.getPlayerCompassToggle(player.getUuid());
+    private boolean shouldPlayerHaveCompass(ServerPlayer player) {
+        Boolean playerToggle = persistentState.getPlayerCompassToggle(player.getUUID());
         if (playerToggle != null) {
             return playerToggle;
         }
         return ConfigManager.getConfig().giveCompassByDefault;
     }
 
-    private void ensurePlayerHasOneTrackerCompass(ServerPlayerEntity player) {
+    private void ensurePlayerHasOneTrackerCompass(ServerPlayer player) {
         int trackerSlot = -1;
-        for (int i = 0; i < player.getInventory().size(); i++) {
-            ItemStack stack = player.getInventory().getStack(i);
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
             if (TrackerCompassItem.isTrackerCompass(stack)) {
                 if (trackerSlot == -1) {
                     trackerSlot = i;
                 } else {
-                    player.getInventory().removeStack(i);
+                    player.getInventory().removeItemNoUpdate(i);
                 }
             }
         }
 
         if (trackerSlot == -1) {
             ItemStack trackerCompass = TrackerCompassItem.create();
-            player.getInventory().insertStack(trackerCompass);
+            player.getInventory().add(trackerCompass);
         }
     }
 
-    private void removeAllTrackerCompasses(ServerPlayerEntity player) {
-        for (int i = 0; i < player.getInventory().size(); i++) {
-            ItemStack stack = player.getInventory().getStack(i);
+    private void removeAllTrackerCompasses(ServerPlayer player) {
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
             if (TrackerCompassItem.isTrackerCompass(stack)) {
-                player.getInventory().removeStack(i);
+                player.getInventory().removeItemNoUpdate(i);
             }
         }
     }
 
-    private void updatePlayerCompass(ServerPlayerEntity player, MinecraftServer server) {
-        UUID targetUuid = persistentState.getTargetPlayer(player.getUuid());
+    private void updatePlayerCompass(ServerPlayer player, MinecraftServer server) {
+        UUID targetUuid = persistentState.getTargetPlayer(player.getUUID());
         if (targetUuid == null) {
             return;
         }
@@ -92,18 +92,18 @@ public class CompassManager {
             return;
         }
 
-        RegistryKey<World> observerDimension = player.getEntityWorld().getRegistryKey();
+        ResourceKey<Level> observerDimension = player.level().dimension();
         updateTrackerCompassesInInventory(player, targetPos, observerDimension);
     }
 
-    private void updateTrackerCompassesInInventory(ServerPlayerEntity player, BlockPos targetPos, RegistryKey<World> dimension) {
-        GlobalPos globalPos = GlobalPos.create(dimension, targetPos);
-        LodestoneTrackerComponent tracker = new LodestoneTrackerComponent(Optional.of(globalPos), false);
+    private void updateTrackerCompassesInInventory(ServerPlayer player, BlockPos targetPos, ResourceKey<Level> dimension) {
+        GlobalPos globalPos = GlobalPos.of(dimension, targetPos);
+        LodestoneTracker tracker = new LodestoneTracker(Optional.of(globalPos), false);
 
-        for (int i = 0; i < player.getInventory().size(); i++) {
-            ItemStack stack = player.getInventory().getStack(i);
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
             if (TrackerCompassItem.isTrackerCompass(stack)) {
-                stack.set(DataComponentTypes.LODESTONE_TRACKER, tracker);
+                stack.set(DataComponents.LODESTONE_TRACKER, tracker);
             }
         }
     }

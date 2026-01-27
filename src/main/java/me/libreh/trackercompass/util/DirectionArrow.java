@@ -1,13 +1,13 @@
 package me.libreh.trackercompass.util;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 
 public class DirectionArrow {
-    public static String calculate(ServerPlayerEntity player, BlockPos target) {
+    public static String calculate(ServerPlayer player, BlockPos target) {
         double dx = target.getX() - player.getX();
         double dz = target.getZ() - player.getZ();
-        double angle = Math.toDegrees(Math.atan2(dz, dx)) - player.getYaw() - 90;
+        double angle = Math.toDegrees(Math.atan2(dz, dx)) - player.getXRot() - 90;
 
         angle = (angle + 360) % 360;
 

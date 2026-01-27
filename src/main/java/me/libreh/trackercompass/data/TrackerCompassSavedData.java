@@ -3,21 +3,22 @@ package me.libreh.trackercompass.data;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import me.libreh.trackercompass.tracking.PlayerDimensionPositions;
-import net.minecraft.datafixer.DataFixTypes;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Uuids;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateType;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class TrackerCompassPersistentState extends PersistentState {
+public class TrackerCompassSavedData extends SavedData {
     private static final String ID = "trackercompass";
 
     private final Map<UUID, PlayerDimensionPositions> playerDimensionPositions;
@@ -36,44 +37,44 @@ public class TrackerCompassPersistentState extends PersistentState {
             )
     ));
 
-    public static final Codec<TrackerCompassPersistentState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.unboundedMap(Uuids.CODEC, PLAYER_DIM_POS_CODEC)
+    public static final Codec<TrackerCompassSavedData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.unboundedMap(UUIDUtil.CODEC, PLAYER_DIM_POS_CODEC)
                     .optionalFieldOf("playerDimensionPositions", new HashMap<>())
                     .forGetter(state -> state.playerDimensionPositions),
-            Codec.unboundedMap(Uuids.CODEC, Uuids.CODEC)
+            Codec.unboundedMap(UUIDUtil.CODEC, UUIDUtil.CODEC)
                     .optionalFieldOf("targetPlayerMappings", new HashMap<>())
                     .forGetter(state -> state.targetPlayerMappings),
-            Codec.unboundedMap(Uuids.CODEC, Codec.BOOL)
+            Codec.unboundedMap(UUIDUtil.CODEC, Codec.BOOL)
                     .optionalFieldOf("playerCompassToggles", new HashMap<>())
                     .forGetter(state -> state.playerCompassToggles)
-    ).apply(instance, TrackerCompassPersistentState::new));
+    ).apply(instance, TrackerCompassSavedData::new));
 
-    private static final PersistentStateType<TrackerCompassPersistentState> TYPE = new PersistentStateType<>(
+    private static final SavedDataType<TrackerCompassSavedData> TYPE = new SavedDataType<>(
             ID,
-            TrackerCompassPersistentState::new,
+            TrackerCompassSavedData::new,
             CODEC,
             DataFixTypes.LEVEL
     );
 
-    public TrackerCompassPersistentState() {
+    public TrackerCompassSavedData() {
         this.playerDimensionPositions = new HashMap<>();
         this.targetPlayerMappings = new HashMap<>();
         this.playerCompassToggles = new HashMap<>();
     }
 
-    private TrackerCompassPersistentState(Map<UUID, PlayerDimensionPositions> playerDimensionPositions, Map<UUID, UUID> targetPlayerMappings, Map<UUID, Boolean> playerCompassToggles) {
+    private TrackerCompassSavedData(Map<UUID, PlayerDimensionPositions> playerDimensionPositions, Map<UUID, UUID> targetPlayerMappings, Map<UUID, Boolean> playerCompassToggles) {
         this.playerDimensionPositions = new HashMap<>(playerDimensionPositions);
         this.targetPlayerMappings = new HashMap<>(targetPlayerMappings);
         this.playerCompassToggles = new HashMap<>(playerCompassToggles);
     }
 
-    public static TrackerCompassPersistentState get(MinecraftServer server) {
-        ServerWorld overworld = server.getWorld(World.OVERWORLD);
+    public static TrackerCompassSavedData get(MinecraftServer server) {
+        ServerLevel overworld = server.getLevel(Level.OVERWORLD);
         if (overworld == null) {
             throw new IllegalStateException("Overworld not available");
         }
 
-        return overworld.getPersistentStateManager().getOrCreate(TYPE);
+        return overworld.getDataStorage().get(TYPE);
     }
 
     public Map<UUID, PlayerDimensionPositions> getPlayerDimensionPositions() {
@@ -84,15 +85,15 @@ public class TrackerCompassPersistentState extends PersistentState {
         return playerDimensionPositions.computeIfAbsent(playerId, k -> new PlayerDimensionPositions());
     }
 
-    public void updatePlayerPosition(UUID playerId, net.minecraft.registry.RegistryKey<World> dimension, BlockPos pos) {
+    public void updatePlayerPosition(UUID playerId, ResourceKey<Level> dimension, BlockPos pos) {
         PlayerDimensionPositions positions = getOrCreatePlayerPositions(playerId);
         positions.setPosition(dimension, pos);
-        markDirty();
+        setDirty();
     }
 
     public void clearPlayerPositions(UUID playerId) {
         playerDimensionPositions.remove(playerId);
-        markDirty();
+        setDirty();
     }
 
     public UUID getTargetPlayer(UUID observer) {
@@ -101,7 +102,7 @@ public class TrackerCompassPersistentState extends PersistentState {
 
     public void setTargetPlayer(UUID observer, UUID target) {
         targetPlayerMappings.put(observer, target);
-        markDirty();
+        setDirty();
     }
 
     public Boolean getPlayerCompassToggle(UUID playerId) {
@@ -110,6 +111,6 @@ public class TrackerCompassPersistentState extends PersistentState {
 
     public void setPlayerCompassToggle(UUID playerId, boolean enabled) {
         playerCompassToggles.put(playerId, enabled);
-        markDirty();
+        setDirty();
     }
 }

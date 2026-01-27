@@ -4,32 +4,32 @@ import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementInterface;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.libreh.trackercompass.config.ConfigManager;
-import me.libreh.trackercompass.data.TrackerCompassPersistentState;
+import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import me.libreh.trackercompass.util.PlayerDimensionUtil;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.LoreComponent;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.item.component.TooltipDisplay;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class TrackerCompassGui extends SimpleGui {
-    private final ServerPlayerEntity player;
+    private final ServerPlayer player;
 
-    public TrackerCompassGui(ServerPlayerEntity player) {
-        super(ScreenHandlerType.GENERIC_9X6, player, false);
+    public TrackerCompassGui(ServerPlayer player) {
+        super(MenuType.GENERIC_9x6, player, false);
         this.player = player;
-        this.setTitle(Text.literal("Track Player").formatted(Formatting.AQUA));
+        this.setTitle(Component.literal("Track Player").withStyle(ChatFormatting.AQUA));
 
         populateGui();
     }
@@ -49,17 +49,17 @@ public class TrackerCompassGui extends SimpleGui {
     private List<UUID> getAllSelectablePlayers() {
         List<UUID> playerUuids = new ArrayList<>();
 
-        for (ServerPlayerEntity onlinePlayer : player.getEntityWorld().getServer().getPlayerManager().getPlayerList()) {
-            if (!onlinePlayer.getUuid().equals(player.getUuid())) {
-                playerUuids.add(onlinePlayer.getUuid());
+        for (ServerPlayer onlinePlayer : player.level().getServer().getPlayerList().getPlayers()) {
+            if (!onlinePlayer.getUUID().equals(player.getUUID())) {
+                playerUuids.add(onlinePlayer.getUUID());
             }
         }
 
         if (ConfigManager.getConfig().showOfflinePlayersInGui) {
-            TrackerCompassPersistentState persistentState = TrackerCompassPersistentState.get(player.getEntityWorld().getServer());
+            TrackerCompassSavedData persistentState = TrackerCompassSavedData.get(player.level().getServer());
 
             for (UUID offlineUuid : persistentState.getPlayerDimensionPositions().keySet()) {
-                if (!playerUuids.contains(offlineUuid) && !offlineUuid.equals(player.getUuid())) {
+                if (!playerUuids.contains(offlineUuid) && !offlineUuid.equals(player.getUUID())) {
                     playerUuids.add(offlineUuid);
                 }
             }
@@ -72,53 +72,53 @@ public class TrackerCompassGui extends SimpleGui {
         ItemStack item = new ItemStack(Items.PLAYER_HEAD);
 
         String playerName = getPlayerName(targetUuid);
-        item.set(DataComponentTypes.CUSTOM_NAME,
-                Text.literal(playerName).styled(s -> s.withItalic(false).withFormatting(Formatting.AQUA)));
+        item.set(DataComponents.CUSTOM_NAME,
+                Component.literal(playerName).withStyle(s -> s.withItalic(false).withColor(ChatFormatting.AQUA)));
 
-        item.set(DataComponentTypes.PROFILE, ProfileComponent.ofDynamic(playerName));
-        item.set(DataComponentTypes.TOOLTIP_DISPLAY, TooltipDisplayComponent.DEFAULT.with(DataComponentTypes.PROFILE, true));
+        item.set(DataComponents.PROFILE, ResolvableProfile.createUnresolved(playerName));
+        item.set(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT.withHidden(DataComponents.PROFILE, true));
 
-        List<Text> lore = new ArrayList<>();
+        List<Component> lore = new ArrayList<>();
 
-        ServerPlayerEntity targetPlayer = this.player.getEntityWorld().getServer().getPlayerManager().getPlayer(targetUuid);
+        ServerPlayer targetPlayer = player.level().getServer().getPlayerList().getPlayer(targetUuid);
         boolean isOnline = targetPlayer != null;
 
         if (ConfigManager.getConfig().showOfflinePlayersInGui) {
-            Formatting formatting = isOnline ? Formatting.GREEN : Formatting.GRAY;
-            lore.add(Text.literal("Status: " + (isOnline ? "Online" : "Offline")).styled(s -> s.withFormatting(formatting).withItalic(false)));
+            ChatFormatting formatting = isOnline ? ChatFormatting.GREEN : ChatFormatting.GRAY;
+            lore.add(Component.literal("Status: " + (isOnline ? "Online" : "Offline")).withStyle(s -> s.withColor(formatting).withItalic(false)));
         }
 
         if (isOnline) {
             String dimension = PlayerDimensionUtil.getName(targetPlayer);
-            lore.add(Text.literal("Dimension: " + dimension).styled(s -> s.withFormatting(Formatting.YELLOW).withItalic(false)));
+            lore.add(Component.literal("Dimension: " + dimension).withStyle(s -> s.withColor(ChatFormatting.YELLOW).withItalic(false)));
 
-            if (targetPlayer.getEntityWorld() == this.player.getEntityWorld()) {
-                double distance = this.player.getEntityPos().distanceTo(targetPlayer.getEntityPos());
-                lore.add(Text.literal("Distance: " + (int)distance + "m").styled(s -> s.withFormatting(Formatting.GOLD).withItalic(false)));
+            if (targetPlayer.level() == this.player.level()) {
+                double distance = this.player.position().distanceTo(targetPlayer.position());
+                lore.add(Component.literal("Distance: " + (int)distance + "m").withStyle(s -> s.withColor(ChatFormatting.GOLD).withItalic(false)));
             }
         }
 
-        lore.add(Text.empty());
-        lore.add(Text.literal("Click to track this target").styled(s -> s.withFormatting(Formatting.GREEN).withItalic(false)));
+        lore.add(Component.empty());
+        lore.add(Component.literal("Click to track this target").withStyle(s -> s.withColor(ChatFormatting.GREEN).withItalic(false)));
 
-        item.set(DataComponentTypes.LORE, new LoreComponent(lore));
+        item.set(DataComponents.LORE, new ItemLore(lore));
         return item;
     }
 
     private String getPlayerName(UUID uuid) {
-        ServerPlayerEntity onlinePlayer = this.player.getEntityWorld().getServer().getPlayerManager().getPlayer(uuid);
+        ServerPlayer onlinePlayer = this.player.level().getServer().getPlayerList().getPlayer(uuid);
         if (onlinePlayer != null) {
             return onlinePlayer.getName().getString();
         }
 
-        return this.player.getEntityWorld().getServer().getApiServices().nameToIdCache()
-                .getByUuid(uuid)
-                .map(PlayerConfigEntry::name)
+        return this.player.level().getServer().services().nameToIdCache()
+                .get(uuid)
+                .map(NameAndId::name)
                 .orElse("Unknown Player");
     }
 
     @Override
-    public boolean onClick(int index, ClickType type, SlotActionType action, GuiElementInterface element) {
+    public boolean onClick(int index, ClickType type, net.minecraft.world.inventory.ClickType action, GuiElementInterface element) {
         if (index >= 0 && index < 45) {
 
             List<UUID> selectablePlayers = getAllSelectablePlayers();
@@ -127,10 +127,10 @@ public class TrackerCompassGui extends SimpleGui {
                 UUID selectedUuid = selectablePlayers.get(index);
                 String selectedName = getPlayerName(selectedUuid);
 
-                TrackerCompassPersistentState.get(player.getEntityWorld().getServer())
-                        .setTargetPlayer(player.getUuid(), selectedUuid);
+                TrackerCompassSavedData.get(player.level().getServer())
+                        .setTargetPlayer(player.getUUID(), selectedUuid);
 
-                player.sendMessage(Text.literal("Tracking: " + selectedName).formatted(Formatting.GOLD), false);
+                player.sendSystemMessage(Component.literal("Tracking: " + selectedName).withStyle(ChatFormatting.GOLD), false);
 
                 this.close();
                 return true;
