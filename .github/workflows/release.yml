@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/cache@v4
@@ -35,6 +37,7 @@ jobs:
           MODRINTH: ${{ secrets.MODRINTH }}
           CHANGELOG: ${{ github.event.release.body }}
       - name: Upload GitHub release
+        if: github.event_name == 'release'
         uses: AButler/upload-release-assets@v3.0
         with:
           files: 'build/libs/*.jar;!build/libs/*-sources.jar;!build/libs/*-dev.jar'

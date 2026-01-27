@@ -23,7 +23,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 import org.slf4j.Logger;
@@ -33,10 +32,8 @@ public class TrackerCompass implements ModInitializer {
 	public static final String MOD_ID = "trackercompass";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static ModContainer CONTAINER = FabricLoader.getInstance().getModContainer(MOD_ID).get();
-
     private int ticksSinceLastUpdate = 0;
     private TrackerCompassPersistentState persistentState;
-
     private PlayerPositionTracker positionTracker;
     private static CompassManager compassManager;
     private CompassActionBar compassActionBar;

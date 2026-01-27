@@ -14,11 +14,9 @@ import java.nio.file.Path;
 
 public class ConfigManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-
     public static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir();
     public static final String CONFIG_NAME = "trackercompass.json";
     public static final Path CONFIG_PATH = CONFIG_DIR.resolve(CONFIG_NAME);
-
     private static Config CONFIG;
 
     public static boolean load() {
