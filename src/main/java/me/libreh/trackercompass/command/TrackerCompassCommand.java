@@ -5,7 +5,6 @@ import com.mojang.brigadier.context.CommandContext;
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.util.GenericModInfo;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
