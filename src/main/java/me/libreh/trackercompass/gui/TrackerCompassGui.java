@@ -88,10 +88,12 @@ public class TrackerCompassGui extends SimpleGui {
         }
 
         if (isOnline) {
-            String dimension = PlayerDimensionUtil.getName(targetPlayer);
-            lore.add(Component.literal("Dimension: " + dimension).withStyle(s -> s.withColor(ChatFormatting.YELLOW).withItalic(false)));
+            if (ConfigManager.getConfig().showDimension) {
+                String dimension = PlayerDimensionUtil.getName(targetPlayer);
+                lore.add(Component.literal("Dimension: " + dimension).withStyle(s -> s.withColor(ChatFormatting.YELLOW).withItalic(false)));
+            }
 
-            if (targetPlayer.level() == this.player.level()) {
+            if (ConfigManager.getConfig().showDistance && targetPlayer.level() == this.player.level()) {
                 double distance = this.player.position().distanceTo(targetPlayer.position());
                 lore.add(Component.literal("Distance: " + (int)distance + "m").withStyle(s -> s.withColor(ChatFormatting.GOLD).withItalic(false)));
             }
