@@ -7,7 +7,7 @@ public class DirectionArrow {
     public static String calculate(ServerPlayer player, BlockPos target) {
         double dx = target.getX() - player.getX();
         double dz = target.getZ() - player.getZ();
-        double angle = Math.toDegrees(Math.atan2(dz, dx)) - player.getXRot() - 90;
+        double angle = Math.toDegrees(Math.atan2(dz, dx)) - player.getYRot() - 90;
 
         angle = (angle + 360) % 360;
 

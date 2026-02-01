@@ -38,13 +38,13 @@ public class TrackerCompassSavedData extends SavedData {
     ));
 
     public static final Codec<TrackerCompassSavedData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.unboundedMap(UUIDUtil.CODEC, PLAYER_DIM_POS_CODEC)
+            Codec.unboundedMap(UUIDUtil.STRING_CODEC, PLAYER_DIM_POS_CODEC)
                     .optionalFieldOf("playerDimensionPositions", new HashMap<>())
                     .forGetter(state -> state.playerDimensionPositions),
-            Codec.unboundedMap(UUIDUtil.CODEC, UUIDUtil.CODEC)
+            Codec.unboundedMap(UUIDUtil.STRING_CODEC, UUIDUtil.STRING_CODEC)
                     .optionalFieldOf("targetPlayerMappings", new HashMap<>())
                     .forGetter(state -> state.targetPlayerMappings),
-            Codec.unboundedMap(UUIDUtil.CODEC, Codec.BOOL)
+            Codec.unboundedMap(UUIDUtil.STRING_CODEC, Codec.BOOL)
                     .optionalFieldOf("playerCompassToggles", new HashMap<>())
                     .forGetter(state -> state.playerCompassToggles)
     ).apply(instance, TrackerCompassSavedData::new));
@@ -74,7 +74,7 @@ public class TrackerCompassSavedData extends SavedData {
             throw new IllegalStateException("Overworld not available");
         }
 
-        return overworld.getDataStorage().get(TYPE);
+        return overworld.getDataStorage().computeIfAbsent(TYPE);
     }
 
     public Map<UUID, PlayerDimensionPositions> getPlayerDimensionPositions() {
