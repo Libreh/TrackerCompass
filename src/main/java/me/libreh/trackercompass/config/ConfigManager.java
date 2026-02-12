@@ -11,7 +11,8 @@ import java.nio.file.Path;
 
 public class ConfigManager {
     private static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir();
-    private static final Path CONFIG_PATH = CONFIG_DIR.resolve("trackercompass.json");
+    private static final String FILE_NAME = "trackercompass.json";
+    private static final Path CONFIG_PATH = CONFIG_DIR.resolve(FILE_NAME);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private static Config CONFIG;
@@ -33,11 +34,10 @@ public class ConfigManager {
             CONFIG = config;
             save();
             success = true;
-        } catch(Throwable exception) {
+        } catch(Exception e) {
             success = false;
             CONFIG = oldConfig;
-            TrackerCompass.LOGGER.error("Error reading config!");
-            exception.printStackTrace();
+            TrackerCompass.LOGGER.error("Failed to read config " + FILE_NAME, e);
         }
         return success;
     }
@@ -46,8 +46,7 @@ public class ConfigManager {
         try {
             Files.writeString(CONFIG_PATH, GSON.toJson(CONFIG));
         } catch (Exception e) {
-            TrackerCompass.LOGGER.error("Error saving config!");
-            e.printStackTrace();
+            TrackerCompass.LOGGER.error("Failed to save config " + FILE_NAME, e);
         }
     }
 
