@@ -50,7 +50,7 @@ public class CompassManager {
         if (playerToggle != null) {
             return playerToggle;
         }
-        return ConfigManager.getConfig().giveCompassByDefault;
+        return ConfigManager.config().giveCompassByDefault;
     }
 
     private void ensurePlayerHasOneTrackerCompass(ServerPlayer player) {

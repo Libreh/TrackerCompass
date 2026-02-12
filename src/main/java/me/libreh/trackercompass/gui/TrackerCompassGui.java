@@ -54,7 +54,7 @@ public class TrackerCompassGui extends SimpleGui {
             }
         }
 
-        if (ConfigManager.getConfig().showOfflinePlayersInGui) {
+        if (ConfigManager.config().showOfflinePlayersInGui) {
             TrackerCompassSavedData persistentState = TrackerCompassSavedData.get(player.level().getServer());
 
             for (UUID offlineUuid : persistentState.getPlayerDimensionPositions().keySet()) {
@@ -82,18 +82,18 @@ public class TrackerCompassGui extends SimpleGui {
         ServerPlayer targetPlayer = player.level().getServer().getPlayerList().getPlayer(targetUuid);
         boolean isOnline = targetPlayer != null;
 
-        if (ConfigManager.getConfig().showOfflinePlayersInGui) {
+        if (ConfigManager.config().showOfflinePlayersInGui) {
             ChatFormatting formatting = isOnline ? ChatFormatting.GREEN : ChatFormatting.GRAY;
             lore.add(Component.literal("Status: " + (isOnline ? "Online" : "Offline")).withStyle(s -> s.withColor(formatting).withItalic(false)));
         }
 
         if (isOnline) {
-            if (ConfigManager.getConfig().showDimension) {
+            if (ConfigManager.config().showDimension) {
                 String dimension = PlayerDimensionUtil.getName(targetPlayer);
                 lore.add(Component.literal("Dimension: " + dimension).withStyle(s -> s.withColor(ChatFormatting.YELLOW).withItalic(false)));
             }
 
-            if (ConfigManager.getConfig().showDistance && targetPlayer.level() == this.player.level()) {
+            if (ConfigManager.config().showDistance && targetPlayer.level() == this.player.level()) {
                 double distance = this.player.position().distanceTo(targetPlayer.position());
                 lore.add(Component.literal("Distance: " + (int)distance + "m").withStyle(s -> s.withColor(ChatFormatting.GOLD).withItalic(false)));
             }

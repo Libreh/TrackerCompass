@@ -25,6 +25,8 @@ public class TrackerCompassSavedData extends SavedData {
     private final Map<UUID, UUID> targetPlayerMappings;
     private final Map<UUID, Boolean> playerCompassToggles;
 
+    private boolean needsSave = false;
+
     public static final Codec<PlayerDimensionPositions> PLAYER_DIM_POS_CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BlockPos.CODEC.optionalFieldOf("overworldPos").forGetter(data -> Optional.ofNullable(data.getOverworldPos())),
             BlockPos.CODEC.optionalFieldOf("netherPos").forGetter(data -> Optional.ofNullable(data.getNetherPos())),
@@ -88,12 +90,12 @@ public class TrackerCompassSavedData extends SavedData {
     public void updatePlayerPosition(UUID playerId, ResourceKey<Level> dimension, BlockPos pos) {
         PlayerDimensionPositions positions = getOrCreatePlayerPositions(playerId);
         positions.setPosition(dimension, pos);
-        setDirty();
+        needsSave = true;
     }
 
     public void clearPlayerPositions(UUID playerId) {
         playerDimensionPositions.remove(playerId);
-        setDirty();
+        needsSave = true;
     }
 
     public UUID getTargetPlayer(UUID observer) {
@@ -112,5 +114,12 @@ public class TrackerCompassSavedData extends SavedData {
     public void setPlayerCompassToggle(UUID playerId, boolean enabled) {
         playerCompassToggles.put(playerId, enabled);
         setDirty();
+    }
+
+    public void markDirtyIfNeeded() {
+        if (needsSave) {
+            setDirty();
+            needsSave = false;
+        }
     }
 }

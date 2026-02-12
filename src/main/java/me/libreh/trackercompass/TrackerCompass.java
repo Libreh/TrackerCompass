@@ -87,7 +87,7 @@ public class TrackerCompass implements ModInitializer {
         positionTracker.updateAllPositions(server);
 
         ticksSinceLastUpdate++;
-        if (ticksSinceLastUpdate >= ConfigManager.getConfig().compassUpdateTicks) {
+        if (ticksSinceLastUpdate >= ConfigManager.config().compassUpdateTicks) {
             ticksSinceLastUpdate = 0;
             compassManager.updateAllCompasses(server);
             compassActionBar.updateActionBars(server);
@@ -101,7 +101,7 @@ public class TrackerCompass implements ModInitializer {
 
         ItemStack stack = player.getItemInHand(hand);
 
-        if (TrackerCompassItem.isTrackerCompass(stack) && ConfigManager.getConfig().enableTrackerGui) {
+        if (TrackerCompassItem.isTrackerCompass(stack) && ConfigManager.config().enableTrackerGui) {
             TrackerCompassGui gui = new TrackerCompassGui(serverPlayer);
             gui.open();
             return InteractionResult.SUCCESS;

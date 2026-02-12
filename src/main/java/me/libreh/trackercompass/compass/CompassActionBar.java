@@ -26,7 +26,7 @@ public class CompassActionBar {
     }
 
     public void updateActionBars(MinecraftServer server) {
-        if (!ConfigManager.getConfig().actionBarInfo) {
+        if (!ConfigManager.config().actionBarInfo) {
             return;
         }
 
@@ -37,14 +37,14 @@ public class CompassActionBar {
 
             wasHoldingCompass.put(playerId, currentlyHolding);
 
-            if (ConfigManager.getConfig().onlyShowWhenHoldingCompass) {
+            if (ConfigManager.config().onlyShowWhenHoldingCompass) {
                 if (wasHolding != null && wasHolding && !currentlyHolding) {
                     player.sendSystemMessage(Component.empty(), true);
                     continue;
                 }
             }
 
-            if (ConfigManager.getConfig().onlyShowWhenHoldingCompass && !currentlyHolding) {
+            if (ConfigManager.config().onlyShowWhenHoldingCompass && !currentlyHolding) {
                 continue;
             }
 
@@ -79,7 +79,7 @@ public class CompassActionBar {
         double distance = Math.sqrt(player.blockPosition().distSqr(targetPos));
 
         String arrow = "";
-        if (ConfigManager.getConfig().showDirectionArrow) {
+        if (ConfigManager.config().showDirectionArrow) {
             arrow = DirectionArrow.calculate(player, targetPos) + " ";
         }
 
@@ -89,7 +89,7 @@ public class CompassActionBar {
         if (targetPlayerEntity != null) {
             targetName = targetPlayerEntity.getName().getString();
 
-            if (ConfigManager.getConfig().showStatusIndicators &&
+            if (ConfigManager.config().showStatusIndicators &&
                 !targetPlayerEntity.level().dimension().equals(player.level().dimension())) {
                 targetName += " (Portal)";
             }
@@ -102,13 +102,13 @@ public class CompassActionBar {
                 targetName = "Player";
             }
 
-            if (ConfigManager.getConfig().showStatusIndicators) {
+            if (ConfigManager.config().showStatusIndicators) {
                 targetName += " (Offline)";
             }
         }
 
         String actionBarFormat;
-        if (ConfigManager.getConfig().showDistance) {
+        if (ConfigManager.config().showDistance) {
             actionBarFormat = String.format("%s%dm [%s]", arrow, (int)distance, targetName);
         } else {
             actionBarFormat = String.format("%s[%s]", arrow, targetName);

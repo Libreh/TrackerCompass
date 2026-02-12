@@ -13,18 +13,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Utility class for building and displaying mod information including icon and about Component.
- * <p>
- * Originally from <a href="https://github.com/Patbox">Patbox's</a> mods, adapted for more customizability.
- * <p>
- * Requirements in fabric.mod.json:
- * <ul>
- *   <li>contact.homepage - Homepage URL for the mod</li>
- *   <li>contact.sources - Source code repository URL</li>
- *   <li>icon - Path to icon.png file (e.g., "assets/modid/icon.png")</li>
- * </ul>
- */
 public class GenericModInfo {
     private static final int ERROR_COLOR = 0xFF0000;
     private static final int VERSION_LABEL_COLOR = 0xF7E1A7;
@@ -34,16 +22,6 @@ public class GenericModInfo {
     private static Component[] about = new Component[0];
     private static Component[] consoleAbout = new Component[0];
 
-    /**
-     * Builds the mod icon and about information with custom title color.
-     *
-     * @param container the mod container
-     * @param id the mod id
-     * @param logger the logger for error reporting
-     * @param showModrinth whether to show Modrinth link
-     * @param showGitHub whether to show GitHub link
-     * @param titleColor RGB color value (e.g., 0xFFFFFF for white, or Formatting.AQUA.getColorValue())
-     */
     public static void build(ModContainer container, String id, Logger logger, boolean showModrinth, boolean showGitHub, int titleColor) {
         buildIcon(container, id, logger);
         buildAbout(container, id, logger, showModrinth, showGitHub, titleColor);
