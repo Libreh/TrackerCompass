@@ -17,14 +17,14 @@ import java.util.UUID;
 public class ToggleCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralCommandNode<CommandSourceStack> trackerCommandNode = dispatcher.register(Commands.literal("tracker")
-                .requires(source -> Permissions.check(source, "manhunt.commands.tracker", true))
+                .requires(source -> Permissions.check(source, "trackercompass.tracker", true))
                 .executes(ToggleCommand::toggleOwnCompass)
         );
         dispatcher.register(Commands.literal("compass").redirect(trackerCommandNode));
         dispatcher.register(Commands.literal("hunt").redirect(trackerCommandNode));
     }
 
-    private static int toggleOwnCompass(CommandContext<CommandSourceStack> context) {
+    public static int toggleOwnCompass(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
 
         if (!(source.getEntity() instanceof ServerPlayer player)) {

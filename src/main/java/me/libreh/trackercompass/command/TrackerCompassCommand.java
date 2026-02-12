@@ -14,15 +14,18 @@ import net.minecraft.server.permissions.PermissionLevel;
 public class TrackerCompassCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("trackercompass")
-                .executes(TrackerCompassCommand::about)
+                .requires(source -> Permissions.check(source, "trackercompass.tracker", true))
+                .then(Commands.literal("info")
+                        .requires(source -> Permissions.check(source, "trackercompass.info", true))
+                        .executes(TrackerCompassCommand::info))
                 .then(Commands.literal("reload")
-                        .requires(Permissions.require("manhunt.commands.reload", PermissionLevel.ADMINS))
+                        .requires(Permissions.require("trackercompass.reload", PermissionLevel.ADMINS))
                         .executes(TrackerCompassCommand::reloadConfig)
                 )
         );
     }
 
-    private static int about(CommandContext<CommandSourceStack> context) {
+    private static int info(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
 
         for (var text : source.getEntity() instanceof ServerPlayer ? GenericModInfo.getAboutFull() : GenericModInfo.getAboutConsole()) {
