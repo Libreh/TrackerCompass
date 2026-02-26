@@ -26,19 +26,15 @@ public class PlayerDimensionUtil {
         return getName(player.level().dimension());
     }
 
-    public static BlockPos findPlayerInDimension(UUID targetUuid, ServerPlayer observer, MinecraftServer server, TrackerCompassSavedData persistentState) {
-        ResourceKey<Level> observerDimension = observer.level().dimension();
+    public static BlockPos findPlayerInDimension(UUID targetUuid, ServerPlayer observer, MinecraftServer server, TrackerCompassSavedData data) {
+        ResourceKey<Level> dimension = observer.level().dimension();
 
-        ServerPlayer targetPlayer = server.getPlayerList().getPlayer(targetUuid);
-        if (targetPlayer != null && targetPlayer.level().dimension().equals(observerDimension)) {
-            return targetPlayer.blockPosition();
+        ServerPlayer target = server.getPlayerList().getPlayer(targetUuid);
+        if (target != null && target.level().dimension().equals(dimension)) {
+            return target.blockPosition();
         }
 
-        PlayerDimensionPositions dimPositions = persistentState.getPlayerDimensionPositions().get(targetUuid);
-        if (dimPositions == null) {
-            return null;
-        }
-
-        return dimPositions.getPosition(observerDimension);
+        PlayerDimensionPositions positions = data.getPlayerDimensionPositions().get(targetUuid);
+        return positions != null ? positions.getPosition(dimension) : null;
     }
 }

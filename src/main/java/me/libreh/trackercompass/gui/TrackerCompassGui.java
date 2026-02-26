@@ -26,11 +26,40 @@ public class TrackerCompassGui extends SimpleGui {
     private final ServerPlayer player;
 
     public TrackerCompassGui(ServerPlayer player) {
-        super(MenuType.GENERIC_9x6, player, false);
+        super(calculateMenuType(player), player, false);
         this.player = player;
-        this.setTitle(Component.literal("Track Player").withStyle(ChatFormatting.AQUA));
+        this.setTitle(Component.literal("Track Player"));
 
         populateGui();
+    }
+
+    private static MenuType<?> calculateMenuType(ServerPlayer player) {
+        List<UUID> allPlayerUuids = new ArrayList<>();
+
+        for (ServerPlayer onlinePlayer : player.level().getServer().getPlayerList().getPlayers()) {
+            if (!onlinePlayer.getUUID().equals(player.getUUID())) {
+                allPlayerUuids.add(onlinePlayer.getUUID());
+            }
+        }
+
+        if (ConfigManager.config().showOfflinePlayersInGui) {
+            for (UUID offlineUuid : TrackerCompassSavedData.get(player.level().getServer()).getPlayerDimensionPositions().keySet()) {
+                if (!allPlayerUuids.contains(offlineUuid) && !offlineUuid.equals(player.getUUID())) {
+                    allPlayerUuids.add(offlineUuid);
+                }
+            }
+        }
+
+        int rows = Math.min(6, Math.max(1, (allPlayerUuids.size() + 8) / 9));
+
+        return switch (rows) {
+            case 1 -> MenuType.GENERIC_9x1;
+            case 2 -> MenuType.GENERIC_9x2;
+            case 3 -> MenuType.GENERIC_9x3;
+            case 4 -> MenuType.GENERIC_9x4;
+            case 5 -> MenuType.GENERIC_9x5;
+            default -> MenuType.GENERIC_9x6;
+        };
     }
 
     private void populateGui() {
@@ -39,8 +68,9 @@ public class TrackerCompassGui extends SimpleGui {
         List<UUID> allPlayerUuids = getAllSelectablePlayers();
 
         int slot = 0;
+        int maxSlots = this.getSize();
         for (UUID uuid : allPlayerUuids) {
-            if (slot >= 45) break;
+            if (slot >= maxSlots) break;
             this.setSlot(slot++, createPlayerItem(uuid));
         }
     }
@@ -99,8 +129,7 @@ public class TrackerCompassGui extends SimpleGui {
             }
         }
 
-        lore.add(Component.empty());
-        lore.add(Component.literal("Click to track this target").withStyle(s -> s.withColor(ChatFormatting.GREEN).withItalic(false)));
+        lore.add(Component.literal("Click to track").withStyle(s -> s.withColor(ChatFormatting.BLUE).withItalic(false)));
 
         item.set(DataComponents.LORE, new ItemLore(lore));
         return item;
@@ -120,7 +149,7 @@ public class TrackerCompassGui extends SimpleGui {
 
     @Override
     public boolean onClick(int index, ClickType type, net.minecraft.world.inventory.ClickType action, GuiElementInterface element) {
-        if (index >= 0 && index < 45) {
+        if (index >= 0 && index < this.getSize()) {
 
             List<UUID> selectablePlayers = getAllSelectablePlayers();
 

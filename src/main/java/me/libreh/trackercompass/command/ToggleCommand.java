@@ -18,13 +18,13 @@ public class ToggleCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralCommandNode<CommandSourceStack> trackerCommandNode = dispatcher.register(Commands.literal("tracker")
                 .requires(source -> Permissions.check(source, "trackercompass.tracker", true))
-                .executes(ToggleCommand::toggleOwnCompass)
+                .executes(ToggleCommand::toggleCompass)
         );
         dispatcher.register(Commands.literal("compass").redirect(trackerCommandNode));
         dispatcher.register(Commands.literal("hunt").redirect(trackerCommandNode));
     }
 
-    public static int toggleOwnCompass(CommandContext<CommandSourceStack> context) {
+    public static int toggleCompass(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
 
         if (!(source.getEntity() instanceof ServerPlayer player)) {
@@ -32,23 +32,19 @@ public class ToggleCommand {
             return 0;
         }
 
-        TrackerCompassSavedData persistentState = TrackerCompassSavedData.get(source.getServer());
+        TrackerCompassSavedData data = TrackerCompassSavedData.get(source.getServer());
         UUID playerId = player.getUUID();
 
-        Boolean currentToggle = persistentState.getPlayerCompassToggle(playerId);
-        boolean newState = currentToggle == null || !currentToggle;
+        Boolean current = data.getPlayerCompassToggle(playerId);
+        boolean enabled = current == null || !current;
 
-        persistentState.setPlayerCompassToggle(playerId, newState);
+        data.setPlayerCompassToggle(playerId, enabled);
+        TrackerCompass.syncCompass(player);
 
-        TrackerCompass.updatePlayerCompassImmediate(player);
-
-        if (newState) {
-            source.sendSuccess(() -> Component.literal("Tracker compass enabled!")
-                    .withStyle(ChatFormatting.GREEN), false);
-        } else {
-            source.sendSuccess(() -> Component.literal("Tracker compass disabled!")
-                    .withStyle(ChatFormatting.RED), false);
-        }
+        source.sendSuccess(() -> Component.literal(enabled
+                ? "Tracker compass enabled!"
+                : "Tracker compass disabled!")
+                .withStyle(enabled ? ChatFormatting.GREEN : ChatFormatting.RED), false);
 
         return 1;
     }

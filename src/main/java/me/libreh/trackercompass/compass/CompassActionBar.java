@@ -18,102 +18,68 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class CompassActionBar {
-    private final TrackerCompassSavedData persistentState;
-    private final Map<UUID, Boolean> wasHoldingCompass = new HashMap<>();
+    private final Map<UUID, Boolean> wasHolding = new HashMap<>();
 
-    public CompassActionBar(TrackerCompassSavedData persistentState) {
-        this.persistentState = persistentState;
-    }
-
-    public void updateActionBars(MinecraftServer server) {
-        if (!ConfigManager.config().actionBarInfo) {
+    public void update(ServerPlayer player, MinecraftServer server, UUID targetUuid, BlockPos targetPos) {
+        if (!ConfigManager.config().actionBarInfo || targetPos == null) {
             return;
         }
 
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            UUID playerId = player.getUUID();
-            boolean currentlyHolding = isPlayerHoldingTrackerCompass(player);
-            Boolean wasHolding = wasHoldingCompass.get(playerId);
+        UUID playerId = player.getUUID();
+        boolean holding = isHoldingCompass(player);
+        Boolean wasHoldingBefore = wasHolding.put(playerId, holding);
 
-            wasHoldingCompass.put(playerId, currentlyHolding);
-
-            if (ConfigManager.config().onlyShowWhenHoldingCompass) {
-                if (wasHolding != null && wasHolding && !currentlyHolding) {
+        if (ConfigManager.config().onlyShowWhenHoldingCompass) {
+            if (!holding) {
+                if (wasHoldingBefore != null && wasHoldingBefore) {
                     player.sendSystemMessage(Component.empty(), true);
-                    continue;
                 }
-            }
-
-            if (ConfigManager.config().onlyShowWhenHoldingCompass && !currentlyHolding) {
-                continue;
-            }
-
-            UUID targetUuid = persistentState.getTargetPlayer(player.getUUID());
-            if (targetUuid == null) {
-                continue;
-            }
-
-            Component actionBarText = buildActionBarText(player, targetUuid, server);
-            if (actionBarText != null) {
-                player.sendSystemMessage(actionBarText, true);
+                return;
             }
         }
+
+        player.sendSystemMessage(buildActionBar(player, targetUuid, targetPos, server), true);
     }
 
     public void onPlayerDisconnect(ServerPlayer player) {
-        wasHoldingCompass.remove(player.getUUID());
+        wasHolding.remove(player.getUUID());
     }
 
-    private boolean isPlayerHoldingTrackerCompass(ServerPlayer player) {
-        ItemStack mainHand = player.getMainHandItem();
-        ItemStack offHand = player.getOffhandItem();
-        return TrackerCompassItem.isTrackerCompass(mainHand) || TrackerCompassItem.isTrackerCompass(offHand);
+    private boolean isHoldingCompass(ServerPlayer player) {
+        return TrackerCompassItem.isTrackerCompass(player.getMainHandItem())
+            || TrackerCompassItem.isTrackerCompass(player.getOffhandItem());
     }
 
-    private Component buildActionBarText(ServerPlayer player, UUID targetUuid, MinecraftServer server) {
-        BlockPos targetPos = PlayerDimensionUtil.findPlayerInDimension(targetUuid, player, server, persistentState);
-        if (targetPos == null) {
-            return null;
-        }
+    private Component buildActionBar(ServerPlayer player, UUID targetUuid, BlockPos targetPos, MinecraftServer server) {
+        int distance = (int) Math.sqrt(player.blockPosition().distSqr(targetPos));
 
-        double distance = Math.sqrt(player.blockPosition().distSqr(targetPos));
-
-        String arrow = "";
-        if (ConfigManager.config().showDirectionArrow) {
-            arrow = DirectionArrow.calculate(player, targetPos) + " ";
-        }
+        String arrow = ConfigManager.config().showDirectionArrow
+            ? DirectionArrow.calculate(player, targetPos) + " "
+            : "";
 
         String targetName;
-        ServerPlayer targetPlayerEntity = server.getPlayerList().getPlayer(targetUuid);
+        ServerPlayer target = server.getPlayerList().getPlayer(targetUuid);
 
-        if (targetPlayerEntity != null) {
-            targetName = targetPlayerEntity.getName().getString();
+        if (target != null) {
+            targetName = target.getName().getString();
 
             if (ConfigManager.config().showStatusIndicators &&
-                !targetPlayerEntity.level().dimension().equals(player.level().dimension())) {
+                    !target.level().dimension().equals(player.level().dimension())) {
                 targetName += " (Portal)";
             }
         } else {
-            Optional<NameAndId> playerConfigEntry = server.services().nameToIdCache().get(targetUuid);
-
-            if (playerConfigEntry.isPresent()) {
-                targetName = playerConfigEntry.get().name();
-            } else {
-                targetName = "Player";
-            }
+            Optional<NameAndId> cached = server.services().nameToIdCache().get(targetUuid);
+            targetName = cached.map(NameAndId::name).orElse("Player");
 
             if (ConfigManager.config().showStatusIndicators) {
                 targetName += " (Offline)";
             }
         }
 
-        String actionBarFormat;
-        if (ConfigManager.config().showDistance) {
-            actionBarFormat = String.format("%s%dm [%s]", arrow, (int)distance, targetName);
-        } else {
-            actionBarFormat = String.format("%s[%s]", arrow, targetName);
-        }
+        String text = ConfigManager.config().showDistance
+            ? String.format("%s%dm [%s]", arrow, distance, targetName)
+            : String.format("%s[%s]", arrow, targetName);
 
-        return Component.literal(actionBarFormat).withStyle(ChatFormatting.AQUA);
+        return Component.literal(text).withStyle(ChatFormatting.AQUA);
     }
 }

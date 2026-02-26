@@ -34,7 +34,7 @@ public class ConfigManager {
             CONFIG = config;
             save();
             success = true;
-        } catch(Exception e) {
+        } catch (Exception e) {
             success = false;
             CONFIG = oldConfig;
             TrackerCompass.LOGGER.error("Failed to read config " + FILE_NAME, e);
