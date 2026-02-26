@@ -50,6 +50,8 @@ public class TrackerCompass implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
         ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStopping);
+        ServerWorldEvents.LOAD.register(this::onWorldLoad);
+        ServerWorldEvents.UNLOAD.register(this::onWorldUnload);
         ServerTickEvents.END_SERVER_TICK.register(this::onServerTick);
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             if (actionBar != null) {
@@ -78,12 +80,22 @@ public class TrackerCompass implements ModInitializer {
             var overworld = server.getLevel(Level.OVERWORLD);
             if (overworld != null) {
                 overworld.getDataStorage().saveAndJoin();
-                LOGGER.info("TrackerCompass persistent state saved");
-            }
                 LOGGER.info("TrackerCompass data saved");
             }
         }
     }
+
+    private void onWorldLoad(MinecraftServer server, ServerLevel world) {
+        if (world.dimension() == Level.OVERWORLD) {
+            data = TrackerCompassSavedData.get(server);
+            compassManager = new CompassManager(data);
+            LOGGER.info("TrackerCompass data reloaded after world load");
+        }
+    }
+
+    private void onWorldUnload(MinecraftServer server, ServerLevel world) {
+        if (world.dimension() == Level.OVERWORLD) {
+            LOGGER.info("TrackerCompass cleaning up before world unload");
         }
     }
 
