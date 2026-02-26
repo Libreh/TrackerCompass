@@ -1,16 +1,13 @@
 package me.libreh.trackercompass.compass;
 
 import me.libreh.trackercompass.config.ConfigManager;
-import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import me.libreh.trackercompass.util.DirectionArrow;
-import me.libreh.trackercompass.util.PlayerDimensionUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
-import net.minecraft.world.item.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
