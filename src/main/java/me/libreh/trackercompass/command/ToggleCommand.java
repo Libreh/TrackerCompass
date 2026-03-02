@@ -2,8 +2,8 @@ package me.libreh.trackercompass.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.tree.LiteralCommandNode;
 import me.libreh.trackercompass.TrackerCompass;
+import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.ChatFormatting;
@@ -12,16 +12,16 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class ToggleCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        LiteralCommandNode<CommandSourceStack> trackerCommandNode = dispatcher.register(Commands.literal("tracker")
-                .requires(source -> Permissions.check(source, "trackercompass.tracker", true))
-                .executes(ToggleCommand::toggleCompass)
-        );
-        dispatcher.register(Commands.literal("compass").redirect(trackerCommandNode));
-        dispatcher.register(Commands.literal("hunt").redirect(trackerCommandNode));
+        for (String name : new String[]{"tracker", "compass", "hunt"}) {
+            dispatcher.register(Commands.literal(name)
+                    .requires(source -> Permissions.check(source, "trackercompass.tracker", true))
+                    .executes(ToggleCommand::toggleCompass));
+        }
     }
 
     public static int toggleCompass(CommandContext<CommandSourceStack> context) {
@@ -35,8 +35,8 @@ public class ToggleCommand {
         TrackerCompassSavedData data = TrackerCompassSavedData.get(source.getServer());
         UUID playerId = player.getUUID();
 
-        Boolean current = data.getPlayerCompassToggle(playerId);
-        boolean enabled = current == null || !current;
+        boolean enabled = !Objects.requireNonNullElse(data.getPlayerCompassToggle(playerId),
+                ConfigManager.config().giveCompassByDefault);
 
         data.setPlayerCompassToggle(playerId, enabled);
         TrackerCompass.syncCompass(player);

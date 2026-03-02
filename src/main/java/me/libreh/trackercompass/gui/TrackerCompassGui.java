@@ -19,6 +19,8 @@ import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.item.component.TooltipDisplay;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,23 +36,8 @@ public class TrackerCompassGui extends SimpleGui {
     }
 
     private static MenuType<?> calculateMenuType(ServerPlayer player) {
-        List<UUID> allPlayerUuids = new ArrayList<>();
-
-        for (ServerPlayer onlinePlayer : player.level().getServer().getPlayerList().getPlayers()) {
-            if (!onlinePlayer.getUUID().equals(player.getUUID())) {
-                allPlayerUuids.add(onlinePlayer.getUUID());
-            }
-        }
-
-        if (ConfigManager.config().showOfflinePlayersInGui) {
-            for (UUID offlineUuid : TrackerCompassSavedData.get(player.level().getServer()).getPlayerDimensionPositions().keySet()) {
-                if (!allPlayerUuids.contains(offlineUuid) && !offlineUuid.equals(player.getUUID())) {
-                    allPlayerUuids.add(offlineUuid);
-                }
-            }
-        }
-
-        int rows = Math.min(6, Math.max(1, (allPlayerUuids.size() + 8) / 9));
+        int count = getAllSelectablePlayers(player).size();
+        int rows = Math.min(6, Math.max(1, (count + 8) / 9));
 
         return switch (rows) {
             case 1 -> MenuType.GENERIC_9x1;
@@ -65,7 +52,7 @@ public class TrackerCompassGui extends SimpleGui {
     private void populateGui() {
         this.clearGui();
 
-        List<UUID> allPlayerUuids = getAllSelectablePlayers();
+        List<UUID> allPlayerUuids = getAllSelectablePlayers(player);
 
         int slot = 0;
         int maxSlots = this.getSize();
@@ -75,26 +62,26 @@ public class TrackerCompassGui extends SimpleGui {
         }
     }
 
-    private List<UUID> getAllSelectablePlayers() {
-        List<UUID> playerUuids = new ArrayList<>();
+    private static List<UUID> getAllSelectablePlayers(ServerPlayer player) {
+        LinkedHashSet<UUID> uuids = new LinkedHashSet<>();
 
         for (ServerPlayer onlinePlayer : player.level().getServer().getPlayerList().getPlayers()) {
             if (!onlinePlayer.getUUID().equals(player.getUUID())) {
-                playerUuids.add(onlinePlayer.getUUID());
+                uuids.add(onlinePlayer.getUUID());
             }
         }
 
         if (ConfigManager.config().showOfflinePlayersInGui) {
-            TrackerCompassSavedData persistentState = TrackerCompassSavedData.get(player.level().getServer());
-
-            for (UUID offlineUuid : persistentState.getPlayerDimensionPositions().keySet()) {
-                if (!playerUuids.contains(offlineUuid) && !offlineUuid.equals(player.getUUID())) {
-                    playerUuids.add(offlineUuid);
+            for (UUID offlineUuid : TrackerCompassSavedData.get(player.level().getServer()).getPlayerDimensionPositions().keySet()) {
+                if (!offlineUuid.equals(player.getUUID())) {
+                    uuids.add(offlineUuid);
                 }
             }
         }
 
-        return playerUuids;
+        List<UUID> sorted = new ArrayList<>(uuids);
+        sorted.sort(Comparator.comparing(uuid -> getPlayerName(player, uuid)));
+        return sorted;
     }
 
     private ItemStack createPlayerItem(UUID targetUuid) {
@@ -136,12 +123,16 @@ public class TrackerCompassGui extends SimpleGui {
     }
 
     private String getPlayerName(UUID uuid) {
-        ServerPlayer onlinePlayer = this.player.level().getServer().getPlayerList().getPlayer(uuid);
+        return getPlayerName(player, uuid);
+    }
+
+    private static String getPlayerName(ServerPlayer player, UUID uuid) {
+        ServerPlayer onlinePlayer = player.level().getServer().getPlayerList().getPlayer(uuid);
         if (onlinePlayer != null) {
             return onlinePlayer.getName().getString();
         }
 
-        return this.player.level().getServer().services().nameToIdCache()
+        return player.level().getServer().services().nameToIdCache()
                 .get(uuid)
                 .map(NameAndId::name)
                 .orElse("Unknown Player");
@@ -151,7 +142,7 @@ public class TrackerCompassGui extends SimpleGui {
     public boolean onClick(int index, ClickType type, net.minecraft.world.inventory.ClickType action, GuiElementInterface element) {
         if (index >= 0 && index < this.getSize()) {
 
-            List<UUID> selectablePlayers = getAllSelectablePlayers();
+            List<UUID> selectablePlayers = getAllSelectablePlayers(player);
 
             if (index < selectablePlayers.size()) {
                 UUID selectedUuid = selectablePlayers.get(index);

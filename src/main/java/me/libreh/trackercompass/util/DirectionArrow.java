@@ -14,6 +14,6 @@ public class DirectionArrow {
         angle = (angle % 360 + 360) % 360;
         int index = (int) (((angle + 22.5) % 360) / 45);
 
-       return ARROWS[index];
+        return ARROWS[index];
     }
 }

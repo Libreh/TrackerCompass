@@ -2,6 +2,7 @@ package me.libreh.trackercompass.compass;
 
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.util.DirectionArrow;
+import me.libreh.trackercompass.util.PlayerDimensionUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -18,13 +19,18 @@ public class CompassActionBar {
     private final Map<UUID, Boolean> wasHolding = new HashMap<>();
 
     public void update(ServerPlayer player, MinecraftServer server, UUID targetUuid, BlockPos targetPos) {
-        if (!ConfigManager.config().actionBarInfo || targetPos == null) {
+        if (!ConfigManager.config().actionBarInfo) {
             return;
         }
 
         UUID playerId = player.getUUID();
         boolean holding = isHoldingCompass(player);
         Boolean wasHoldingBefore = wasHolding.put(playerId, holding);
+
+        if (targetPos == null) {
+            player.sendSystemMessage(Component.empty(), true);
+            return;
+        }
 
         if (ConfigManager.config().onlyShowWhenHoldingCompass) {
             if (!holding) {
@@ -60,9 +66,12 @@ public class CompassActionBar {
         if (target != null) {
             targetName = target.getName().getString();
 
-            if (ConfigManager.config().showStatusIndicators &&
-                    !target.level().dimension().equals(player.level().dimension())) {
-                targetName += " (Portal)";
+            if (!target.level().dimension().equals(player.level().dimension())) {
+                if (ConfigManager.config().showDimension) {
+                    targetName += " (" + PlayerDimensionUtil.getName(target) + ")";
+                } else if (ConfigManager.config().showStatusIndicators) {
+                    targetName += " (Other Dim)";
+                }
             }
         } else {
             Optional<NameAndId> cached = server.services().nameToIdCache().get(targetUuid);

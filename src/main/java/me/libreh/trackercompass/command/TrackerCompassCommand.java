@@ -15,6 +15,7 @@ public class TrackerCompassCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("trackercompass")
                 .requires(source -> Permissions.check(source, "trackercompass.tracker", true))
+                .executes(ToggleCommand::toggleCompass)
                 .then(Commands.literal("info")
                         .requires(source -> Permissions.check(source, "trackercompass.info", true))
                         .executes(TrackerCompassCommand::info))

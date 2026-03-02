@@ -11,14 +11,12 @@ import net.minecraft.world.item.component.CustomData;
 
 public class TrackerCompassItem {
     public static final String NBT_TRACKER = "trackercompass:tracker";
-    public static final String NBT_REMOVE = "trackercompass:remove";
     private static final Style STYLE = Style.EMPTY.withColor(ChatFormatting.LIGHT_PURPLE).withItalic(false);
 
     public static ItemStack create() {
         ItemStack compass = new ItemStack(Items.COMPASS);
         CompoundTag tag = new CompoundTag();
 
-        tag.putBoolean(NBT_REMOVE, true);
         tag.putBoolean(NBT_TRACKER, true);
 
         compass.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
