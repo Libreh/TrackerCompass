@@ -12,6 +12,7 @@ import me.libreh.trackercompass.gui.TrackerCompassGui;
 import me.libreh.trackercompass.util.GenericModInfo;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
@@ -56,6 +57,11 @@ public class TrackerCompass implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             if (compassManager != null) {
                 compassManager.syncInventory(handler.player);
+            }
+        });
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            if (compassManager != null && !alive) {
+                compassManager.syncInventory(newPlayer);
             }
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
