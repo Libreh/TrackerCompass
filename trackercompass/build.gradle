@@ -37,6 +37,11 @@ if (System.getenv("MODRINTH")) {
         gameVersions = [((String) project.minecraft_version)]
         changelog = System.getenv("CHANGELOG")
         loaders = ["fabric", "quilt"]
+        dependencies {
+            required.project "fabric-api"
+            embedded.project "sgui"
+            embedded.project "fabric-permissions-api"
+        }
     }
 
     remapJar {
