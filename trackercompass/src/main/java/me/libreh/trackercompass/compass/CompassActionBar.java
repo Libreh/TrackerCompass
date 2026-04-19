@@ -1,91 +1,62 @@
 package me.libreh.trackercompass.compass;
 
+import me.libreh.trackercompass.api.ActionBarRenderer;
+import me.libreh.trackercompass.api.CompassHelper;
 import me.libreh.trackercompass.api.DimensionUtil;
-import me.libreh.trackercompass.api.DirectionArrow;
 import me.libreh.trackercompass.config.ConfigManager;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 public class CompassActionBar {
-    private final Map<UUID, Boolean> wasHolding = new HashMap<>();
+    private final ActionBarRenderer renderer = new ActionBarRenderer();
 
     public void update(ServerPlayer player, MinecraftServer server, UUID targetUuid, BlockPos targetPos) {
-        if (!ConfigManager.config().actionBarInfo) {
-            return;
-        }
+        String targetName = targetPos != null ? resolveTargetName(player, server, targetUuid) : null;
 
-        UUID playerId = player.getUUID();
-        boolean holding = isHoldingCompass(player);
-        Boolean wasHoldingBefore = wasHolding.put(playerId, holding);
+        Component text = targetPos != null
+                ? ActionBarRenderer.buildDefaultText(player, targetPos, targetName,
+                    ConfigManager.config().showDirectionArrow, ConfigManager.config().showDistance)
+                : null;
 
-        if (targetPos == null) {
-            player.sendSystemMessage(Component.empty(), true);
-            return;
-        }
-
-        if (ConfigManager.config().onlyShowWhenHoldingCompass) {
-            if (!holding) {
-                if (wasHoldingBefore != null && wasHoldingBefore) {
-                    player.sendSystemMessage(Component.empty(), true);
-                }
-                return;
-            }
-        }
-
-        player.sendSystemMessage(buildActionBar(player, targetUuid, targetPos, server), true);
+        renderer.update(player, targetPos,
+                ConfigManager.config().actionBarInfo,
+                ConfigManager.config().onlyShowWhenHoldingCompass,
+                p -> CompassHelper.isHoldingCompass(p, TrackerCompassItem::isTrackerCompass),
+                text);
     }
 
     public void onPlayerDisconnect(ServerPlayer player) {
-        wasHolding.remove(player.getUUID());
+        renderer.onPlayerDisconnect(player);
     }
 
-    private boolean isHoldingCompass(ServerPlayer player) {
-        return TrackerCompassItem.isTrackerCompass(player.getMainHandItem())
-            || TrackerCompassItem.isTrackerCompass(player.getOffhandItem());
-    }
-
-    private Component buildActionBar(ServerPlayer player, UUID targetUuid, BlockPos targetPos, MinecraftServer server) {
-        int distance = (int) Math.sqrt(player.blockPosition().distSqr(targetPos));
-
-        String arrow = ConfigManager.config().showDirectionArrow
-            ? DirectionArrow.calculate(player, targetPos) + " "
-            : "";
-
-        String targetName;
+    private String resolveTargetName(ServerPlayer player, MinecraftServer server, UUID targetUuid) {
         ServerPlayer target = server.getPlayerList().getPlayer(targetUuid);
 
         if (target != null) {
-            targetName = target.getName().getString();
+            String name = target.getName().getString();
 
             if (!target.level().dimension().equals(player.level().dimension())) {
                 if (ConfigManager.config().showDimension) {
-                    targetName += " (" + DimensionUtil.getDimensionName(target) + ")";
+                    name += " (" + DimensionUtil.getDimensionName(target) + ")";
                 } else if (ConfigManager.config().showStatusIndicators) {
-                    targetName += " (Other Dim)";
+                    name += " (Other Dim)";
                 }
             }
-        } else {
-            Optional<NameAndId> cached = server.services().nameToIdCache().get(targetUuid);
-            targetName = cached.map(NameAndId::name).orElse("Player");
-
-            if (ConfigManager.config().showStatusIndicators) {
-                targetName += " (Offline)";
-            }
+            return name;
         }
 
-        String text = ConfigManager.config().showDistance
-            ? String.format("%s%dm [%s]", arrow, distance, targetName)
-            : String.format("%s[%s]", arrow, targetName);
+        Optional<NameAndId> cached = server.services().nameToIdCache().get(targetUuid);
+        String name = cached.map(NameAndId::name).orElse("Player");
 
-        return Component.literal(text).withStyle(ChatFormatting.AQUA);
+        if (ConfigManager.config().showStatusIndicators) {
+            name += " (Offline)";
+        }
+        return name;
     }
 }
