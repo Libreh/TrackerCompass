@@ -3,9 +3,11 @@ package me.libreh.trackercompass.api;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.LodestoneTracker;
+import net.minecraft.world.level.Level;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -13,7 +15,13 @@ import java.util.function.Supplier;
 
 public class CompassHelper {
     public static void pointToTarget(ServerPlayer player, BlockPos targetPos, Predicate<ItemStack> isCompass) {
-        GlobalPos globalPos = GlobalPos.of(player.level().dimension(), targetPos);
+        pointToTarget(player, player.level().dimension(), targetPos, isCompass);
+    }
+
+    // Pass explicit dimension when client-visible dimension differs from server's
+    // (e.g. dimensions spoofing), else LodestoneTracker spins.
+    public static void pointToTarget(ServerPlayer player, ResourceKey<Level> dimension, BlockPos targetPos, Predicate<ItemStack> isCompass) {
+        GlobalPos globalPos = GlobalPos.of(dimension, targetPos);
         LodestoneTracker tracker = new LodestoneTracker(Optional.of(globalPos), false);
 
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
