@@ -34,7 +34,6 @@ if (System.getenv("MODRINTH")) {
         loaders = ["fabric", "quilt"]
         dependencies {
             required.project "fabric-api"
-            embedded.project "sgui"
             embedded.project "fabric-permissions-api"
         }
     }
