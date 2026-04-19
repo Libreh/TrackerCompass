@@ -19,7 +19,6 @@ public class CompassManager {
     }
 
     public void update(ServerPlayer player, BlockPos targetPos) {
-        syncInventory(player);
         if (targetPos != null) {
             pointToTarget(player, targetPos);
         }
