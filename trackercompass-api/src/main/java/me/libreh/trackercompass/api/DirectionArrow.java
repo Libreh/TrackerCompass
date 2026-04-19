@@ -1,4 +1,4 @@
-package me.libreh.trackercompass.util;
+package me.libreh.trackercompass.api;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,4 +16,6 @@ public class DirectionArrow {
 
         return ARROWS[index];
     }
+
+    private DirectionArrow() {}
 }

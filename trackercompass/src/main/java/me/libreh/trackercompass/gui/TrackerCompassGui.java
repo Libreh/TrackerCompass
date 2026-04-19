@@ -1,11 +1,11 @@
 package me.libreh.trackercompass.gui;
 
 import eu.pb4.sgui.api.ClickType;
-import eu.pb4.sgui.api.elements.GuiElementInterface;
+import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassSavedData;
-import me.libreh.trackercompass.util.PlayerDimensionUtil;
+import me.libreh.trackercompass.api.DimensionUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -106,7 +106,7 @@ public class TrackerCompassGui extends SimpleGui {
 
         if (isOnline) {
             if (ConfigManager.config().showDimension) {
-                String dimension = PlayerDimensionUtil.getName(targetPlayer);
+                String dimension = DimensionUtil.getDimensionName(targetPlayer);
                 lore.add(Component.literal("Dimension: " + dimension).withStyle(s -> s.withColor(ChatFormatting.YELLOW).withItalic(false)));
             }
 
@@ -139,7 +139,7 @@ public class TrackerCompassGui extends SimpleGui {
     }
 
     @Override
-    public boolean onClick(int index, ClickType type, net.minecraft.world.inventory.ClickType action, GuiElementInterface element) {
+    public boolean onClick(int index, ClickType type, net.minecraft.world.inventory.ContainerInput action, GuiElement element) {
         if (index >= 0 && index < this.getSize()) {
 
             List<UUID> selectablePlayers = getAllSelectablePlayers(player);

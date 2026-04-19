@@ -1,8 +1,8 @@
 package me.libreh.trackercompass.compass;
 
+import me.libreh.trackercompass.api.DimensionUtil;
+import me.libreh.trackercompass.api.DirectionArrow;
 import me.libreh.trackercompass.config.ConfigManager;
-import me.libreh.trackercompass.util.DirectionArrow;
-import me.libreh.trackercompass.util.PlayerDimensionUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -68,7 +68,7 @@ public class CompassActionBar {
 
             if (!target.level().dimension().equals(player.level().dimension())) {
                 if (ConfigManager.config().showDimension) {
-                    targetName += " (" + PlayerDimensionUtil.getName(target) + ")";
+                    targetName += " (" + DimensionUtil.getDimensionName(target) + ")";
                 } else if (ConfigManager.config().showStatusIndicators) {
                     targetName += " (Other Dim)";
                 }

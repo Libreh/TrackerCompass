@@ -1,4 +1,4 @@
-package me.libreh.trackercompass.tracking;
+package me.libreh.trackercompass.api;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;

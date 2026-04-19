@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "trackercompass-api",
+	"version": "${version}",
+	"name": "Tracker Compass API",
+	"description": "API library for Tracker Compass integration",
+	"authors": [
+		"Libreh"
+	],
+	"contact": {
+		"homepage": "https://github.com/Libreh",
+		"sources": "https://github.com/Libreh/TrackerCompass"
+	},
+	"license": "LGPLv3",
+	"environment": "*",
+	"depends": {
+		"fabricloader": ">=0.19.2",
+		"minecraft": "~26.1.2",
+		"java": ">=25"
+	}
+}

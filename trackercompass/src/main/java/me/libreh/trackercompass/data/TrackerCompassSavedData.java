@@ -2,9 +2,10 @@ package me.libreh.trackercompass.data;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import me.libreh.trackercompass.tracking.PlayerDimensionPositions;
+import me.libreh.trackercompass.api.PlayerDimensionPositions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -19,7 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class TrackerCompassSavedData extends SavedData {
-    private static final String ID = "trackercompass";
+    private static final Identifier ID = Identifier.fromNamespaceAndPath("trackercompass", "trackercompass");
 
     private final Map<UUID, PlayerDimensionPositions> playerDimensionPositions;
     private final Map<UUID, UUID> targetPlayerMappings;
