@@ -7,6 +7,7 @@ import me.libreh.trackercompass.util.GenericModInfo;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionLevel;
@@ -16,6 +17,8 @@ public class TrackerCompassCommand {
         dispatcher.register(Commands.literal("trackercompass")
                 .requires(source -> Permissions.check(source, "trackercompass.tracker", true))
                 .executes(ToggleCommand::toggleCompass)
+                .then(Commands.argument("player", EntityArgument.player())
+                        .executes(ToggleCommand::trackPlayer))
                 .then(Commands.literal("info")
                         .requires(source -> Permissions.check(source, "trackercompass.info", true))
                         .executes(TrackerCompassCommand::info))
