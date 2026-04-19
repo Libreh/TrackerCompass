@@ -3,7 +3,8 @@
   "package": "me.libreh.trackercompass.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ServerPlayerEntityMixin"
+    "ServerPlayerEntityMixin",
+    "SlotMixin"
   ],
   "injectors": {
     "defaultRequire": 1
