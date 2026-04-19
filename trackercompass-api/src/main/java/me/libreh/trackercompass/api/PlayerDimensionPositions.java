@@ -1,53 +1,57 @@
 package me.libreh.trackercompass.api;
 
+import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class PlayerDimensionPositions {
-    private BlockPos overworldPos = null;
-    private BlockPos netherPos = null;
-    private BlockPos endPos = null;
+    public static final Codec<PlayerDimensionPositions> CODEC =
+            Codec.unboundedMap(Identifier.CODEC, BlockPos.CODEC)
+                    .xmap(PlayerDimensionPositions::fromLocationMap, PlayerDimensionPositions::toLocationMap);
+
+    private final Map<ResourceKey<Level>, BlockPos> positions;
 
     public PlayerDimensionPositions() {
+        this.positions = new HashMap<>();
     }
 
-    public PlayerDimensionPositions(BlockPos overworldPos, BlockPos netherPos, BlockPos endPos) {
-        this.overworldPos = overworldPos;
-        this.netherPos = netherPos;
-        this.endPos = endPos;
+    public PlayerDimensionPositions(Map<ResourceKey<Level>, BlockPos> positions) {
+        this.positions = new HashMap<>(positions);
     }
 
-    public BlockPos getOverworldPos() {
-        return overworldPos;
+    private static PlayerDimensionPositions fromLocationMap(Map<Identifier, BlockPos> map) {
+        var pdp = new PlayerDimensionPositions();
+        map.forEach((loc, pos) -> pdp.positions.put(ResourceKey.create(Registries.DIMENSION, loc), pos));
+        return pdp;
     }
 
-    public BlockPos getNetherPos() {
-        return netherPos;
-    }
-
-    public BlockPos getEndPos() {
-        return endPos;
+    private Map<Identifier, BlockPos> toLocationMap() {
+        var map = new LinkedHashMap<Identifier, BlockPos>();
+        positions.forEach((key, pos) -> map.put(key.identifier(), pos));
+        return map;
     }
 
     public void setPosition(ResourceKey<Level> dimension, BlockPos pos) {
-        if (dimension.equals(Level.OVERWORLD)) {
-            overworldPos = pos;
-        } else if (dimension.equals(Level.NETHER)) {
-            netherPos = pos;
-        } else if (dimension.equals(Level.END)) {
-            endPos = pos;
-        }
+        positions.put(dimension, pos);
     }
 
     public BlockPos getPosition(ResourceKey<Level> dimension) {
-        if (dimension.equals(Level.OVERWORLD)) {
-            return overworldPos;
-        } else if (dimension.equals(Level.NETHER)) {
-            return netherPos;
-        } else if (dimension.equals(Level.END)) {
-            return endPos;
-        }
-        return null;
+        return positions.get(dimension);
+    }
+
+    public Map<ResourceKey<Level>, BlockPos> getPositions() {
+        return Collections.unmodifiableMap(positions);
+    }
+
+    public void clear() {
+        positions.clear();
     }
 }

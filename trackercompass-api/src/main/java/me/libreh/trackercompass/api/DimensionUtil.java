@@ -6,14 +6,11 @@ import net.minecraft.world.level.Level;
 
 public class DimensionUtil {
     public static String getDimensionName(ResourceKey<Level> dimension) {
-        if (dimension == Level.OVERWORLD) {
-            return "Overworld";
-        } else if (dimension == Level.NETHER) {
-            return "Nether";
-        } else if (dimension == Level.END) {
-            return "End";
-        }
-        return "Unknown";
+        String path = dimension.identifier().getPath();
+        if (path.equals("overworld")) return "Overworld";
+        if (path.equals("the_nether") || path.equals("nether")) return "Nether";
+        if (path.equals("the_end")) return "End";
+        return dimension.identifier().toString();
     }
 
     public static String getDimensionName(ServerPlayer player) {
