@@ -5,7 +5,7 @@ import eu.pb4.sgui.api.elements.GuiElementInterface;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassSavedData;
-import me.libreh.trackercompass.util.PlayerDimensionUtil;
+import me.libreh.trackercompass.api.DimensionUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -106,7 +106,7 @@ public class TrackerCompassGui extends SimpleGui {
 
         if (isOnline) {
             if (ConfigManager.config().showDimension) {
-                String dimension = PlayerDimensionUtil.getName(targetPlayer);
+                String dimension = DimensionUtil.getDimensionName(targetPlayer);
                 lore.add(Component.literal("Dimension: " + dimension).withStyle(s -> s.withColor(ChatFormatting.YELLOW).withItalic(false)));
             }
 

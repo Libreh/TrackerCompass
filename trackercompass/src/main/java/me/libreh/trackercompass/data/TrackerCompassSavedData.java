@@ -2,7 +2,7 @@ package me.libreh.trackercompass.data;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import me.libreh.trackercompass.tracking.PlayerDimensionPositions;
+import me.libreh.trackercompass.api.PlayerDimensionPositions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.resources.ResourceKey;

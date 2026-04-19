@@ -8,3 +8,6 @@ pluginManagement {
 		gradlePluginPortal()
 	}
 }
+
+include 'trackercompass-api'
+include 'trackercompass'

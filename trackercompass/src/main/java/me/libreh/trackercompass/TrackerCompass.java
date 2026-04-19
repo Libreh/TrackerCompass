@@ -1,5 +1,6 @@
 package me.libreh.trackercompass;
 
+import me.libreh.trackercompass.api.PlayerDimensionPositions;
 import me.libreh.trackercompass.command.ToggleCommand;
 import me.libreh.trackercompass.command.TrackerCompassCommand;
 import me.libreh.trackercompass.compass.CompassActionBar;
@@ -9,7 +10,6 @@ import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import me.libreh.trackercompass.gui.TrackerCompassGui;
 import me.libreh.trackercompass.util.GenericModInfo;
-import me.libreh.trackercompass.util.PlayerDimensionUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -21,6 +21,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -108,7 +109,7 @@ public class TrackerCompass implements ModInitializer {
 
             UUID targetUuid = data.getTargetPlayer(player.getUUID());
             BlockPos targetPos = targetUuid != null
-                ? PlayerDimensionUtil.findPlayerInDimension(targetUuid, player, server, data)
+                ? findTargetPos(targetUuid, player, server)
                 : null;
 
             compassManager.update(player, targetPos);
@@ -116,6 +117,18 @@ public class TrackerCompass implements ModInitializer {
         }
 
         data.markDirtyIfNeeded();
+    }
+
+    private BlockPos findTargetPos(UUID targetUuid, ServerPlayer observer, MinecraftServer server) {
+        ResourceKey<Level> dimension = observer.level().dimension();
+
+        ServerPlayer target = server.getPlayerList().getPlayer(targetUuid);
+        if (target != null && target.level().dimension().equals(dimension)) {
+            return target.blockPosition();
+        }
+
+        PlayerDimensionPositions positions = data.getPlayerDimensionPositions().get(targetUuid);
+        return positions != null ? positions.getPosition(dimension) : null;
     }
 
     private void updatePosition(ServerPlayer player) {

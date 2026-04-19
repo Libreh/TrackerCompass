@@ -1,0 +1,9 @@
+base.archivesName = "trackercompass-api"
+
+loom {
+    mods {
+        "trackercompass-api" {
+            sourceSet sourceSets.main
+        }
+    }
+}
