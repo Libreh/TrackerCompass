@@ -3,13 +3,11 @@ package me.libreh.trackercompass.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import me.libreh.trackercompass.config.ConfigManager;
-import me.libreh.trackercompass.util.GenericModInfo;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionLevel;
 
 public class TrackerCompassCommand {
@@ -19,24 +17,11 @@ public class TrackerCompassCommand {
                 .executes(ToggleCommand::toggleCompass)
                 .then(Commands.argument("player", EntityArgument.player())
                         .executes(ToggleCommand::trackPlayer))
-                .then(Commands.literal("info")
-                        .requires(source -> Permissions.check(source, "trackercompass.info", true))
-                        .executes(TrackerCompassCommand::info))
                 .then(Commands.literal("reload")
                         .requires(Permissions.require("trackercompass.reload", PermissionLevel.ADMINS))
                         .executes(TrackerCompassCommand::reloadConfig)
                 )
         );
-    }
-
-    private static int info(CommandContext<CommandSourceStack> context) {
-        CommandSourceStack source = context.getSource();
-
-        for (var text : source.getEntity() instanceof ServerPlayer ? GenericModInfo.getAboutFull() : GenericModInfo.getAboutConsole()) {
-            source.sendSuccess(() -> text, false);
-        }
-
-        return 1;
     }
 
     private static int reloadConfig(CommandContext<CommandSourceStack> context) {

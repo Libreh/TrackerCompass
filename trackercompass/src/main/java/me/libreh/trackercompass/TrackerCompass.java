@@ -9,7 +9,6 @@ import me.libreh.trackercompass.compass.TrackerCompassItem;
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import me.libreh.trackercompass.gui.TrackerCompassGui;
-import me.libreh.trackercompass.util.GenericModInfo;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
@@ -18,8 +17,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.resources.ResourceKey;
@@ -38,7 +35,6 @@ import java.util.UUID;
 public class TrackerCompass implements ModInitializer {
 	public static final String MOD_ID = "trackercompass";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    public static ModContainer CONTAINER = FabricLoader.getInstance().getModContainer(MOD_ID).get();
     private int tickCounter = 0;
     private TrackerCompassSavedData data;
     private static CompassManager compassManager;
@@ -46,8 +42,6 @@ public class TrackerCompass implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-        GenericModInfo.build(CONTAINER, MOD_ID, LOGGER, true, true, 0xFF80EA);
-
         ConfigManager.load();
 
         ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
