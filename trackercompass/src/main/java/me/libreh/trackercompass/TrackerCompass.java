@@ -1,5 +1,6 @@
 package me.libreh.trackercompass;
 
+import me.libreh.trackercompass.api.DimensionUtil;
 import me.libreh.trackercompass.api.PlayerDimensionPositions;
 import me.libreh.trackercompass.api.TrackerCompassEvents;
 import me.libreh.trackercompass.api.TrackerCompassRegistry;
@@ -96,7 +97,7 @@ public class TrackerCompass implements ModInitializer {
     }
 
     private void onWorldLoad(MinecraftServer server, ServerLevel world) {
-        if (world.dimension() == Level.OVERWORLD) {
+        if (DimensionUtil.resolve(world) == Level.OVERWORLD) {
             data = TrackerCompassSavedData.get(server);
             compassManager = new CompassManager(data);
             LOGGER.info("TrackerCompass data reloaded after world load");
@@ -133,10 +134,10 @@ public class TrackerCompass implements ModInitializer {
     }
 
     private static BlockPos findTargetPos(UUID targetUuid, ServerPlayer observer, MinecraftServer server) {
-        ResourceKey<Level> dimension = observer.level().dimension();
+        ResourceKey<Level> dimension = DimensionUtil.resolve(observer);
 
         ServerPlayer target = server.getPlayerList().getPlayer(targetUuid);
-        if (target != null && target.level().dimension().equals(dimension)) {
+        if (target != null && DimensionUtil.resolve(target).equals(dimension)) {
             return target.blockPosition();
         }
 
@@ -148,7 +149,7 @@ public class TrackerCompass implements ModInitializer {
         if (!player.isAlive()) {
             data.clearPlayerPositions(player.getUUID());
         } else {
-            data.updatePlayerPosition(player.getUUID(), player.level().dimension(), player.blockPosition());
+            data.updatePlayerPosition(player.getUUID(), DimensionUtil.resolve(player), player.blockPosition());
         }
     }
 

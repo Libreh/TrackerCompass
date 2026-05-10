@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 public class CompassHelper {
     public static void pointToTarget(ServerPlayer player, BlockPos targetPos, Predicate<ItemStack> isCompass) {
-        pointToTarget(player, player.level().dimension(), targetPos, isCompass);
+        pointToTarget(player, DimensionUtil.resolve(player), targetPos, isCompass);
     }
 
     // Pass explicit dimension when client-visible dimension differs from server's

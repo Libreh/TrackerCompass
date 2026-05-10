@@ -12,6 +12,7 @@ subprojects {
 
     repositories {
         maven { url 'https://maven.nucleoid.xyz' }
+        maven { url 'https://maven.supersanta.me/snapshots' }
     }
 
     dependencies {

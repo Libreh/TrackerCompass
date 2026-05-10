@@ -8,3 +8,7 @@ loom {
         }
     }
 }
+
+dependencies {
+    compileOnly "net.casualchampionships:arcade-utils:${project.arcade_version}"
+}

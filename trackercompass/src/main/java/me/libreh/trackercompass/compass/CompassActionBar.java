@@ -41,7 +41,7 @@ public class CompassActionBar {
         if (target != null) {
             String name = target.getName().getString();
 
-            if (!target.level().dimension().equals(player.level().dimension())) {
+            if (!DimensionUtil.resolve(target).equals(DimensionUtil.resolve(player))) {
                 if (ConfigManager.config().showDimension) {
                     name += " (" + DimensionUtil.getDimensionName(target) + ")";
                 } else if (ConfigManager.config().showStatusIndicators) {
