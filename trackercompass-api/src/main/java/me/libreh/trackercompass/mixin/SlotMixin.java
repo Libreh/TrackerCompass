@@ -1,6 +1,6 @@
 package me.libreh.trackercompass.mixin;
 
-import me.libreh.trackercompass.compass.TrackerCompassItem;
+import me.libreh.trackercompass.api.TrackerCompassRegistry;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class SlotMixin {
     @Inject(method = "mayPlace", at = @At("HEAD"), cancellable = true)
     private void blockTrackerCompassInContainers(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-        if (!TrackerCompassItem.isTrackerCompass(stack)) return;
+        if (!TrackerCompassRegistry.isAny(stack)) return;
         Slot self = (Slot) (Object) this;
         if (!(self.container instanceof Inventory)) {
             cir.setReturnValue(false);

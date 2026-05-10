@@ -1,6 +1,8 @@
 package me.libreh.trackercompass;
 
 import me.libreh.trackercompass.api.PlayerDimensionPositions;
+import me.libreh.trackercompass.api.TrackerCompassEvents;
+import me.libreh.trackercompass.api.TrackerCompassRegistry;
 import me.libreh.trackercompass.command.ToggleCommand;
 import me.libreh.trackercompass.command.TrackerCompassCommand;
 import me.libreh.trackercompass.compass.CompassActionBar;
@@ -36,13 +38,16 @@ public class TrackerCompass implements ModInitializer {
 	public static final String MOD_ID = "trackercompass";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     private int tickCounter = 0;
-    private TrackerCompassSavedData data;
+    private static TrackerCompassSavedData data;
     private static CompassManager compassManager;
-    private CompassActionBar actionBar;
+    private static CompassActionBar actionBar;
 
 	@Override
 	public void onInitialize() {
         ConfigManager.load();
+
+        TrackerCompassRegistry.register(TrackerCompassItem::isTrackerCompass);
+        TrackerCompassEvents.onHotbarSwitch(TrackerCompass::refreshActionBar);
 
         ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
         ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStopping);
@@ -119,7 +124,15 @@ public class TrackerCompass implements ModInitializer {
         data.markDirtyIfNeeded();
     }
 
-    private BlockPos findTargetPos(UUID targetUuid, ServerPlayer observer, MinecraftServer server) {
+    public static void refreshActionBar(ServerPlayer player) {
+        if (actionBar == null || data == null) return;
+        MinecraftServer server = ((ServerLevel) player.level()).getServer();
+        UUID targetUuid = data.getTargetPlayer(player.getUUID());
+        BlockPos targetPos = targetUuid != null ? findTargetPos(targetUuid, player, server) : null;
+        actionBar.update(player, server, targetUuid, targetPos);
+    }
+
+    private static BlockPos findTargetPos(UUID targetUuid, ServerPlayer observer, MinecraftServer server) {
         ResourceKey<Level> dimension = observer.level().dimension();
 
         ServerPlayer target = server.getPlayerList().getPlayer(targetUuid);

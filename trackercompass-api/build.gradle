@@ -1,6 +1,7 @@
 base.archivesName = "trackercompass-api"
 
 loom {
+    runConfigs.clear()
     mods {
         "trackercompass-api" {
             sourceSet sourceSets.main
