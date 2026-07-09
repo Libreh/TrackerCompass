@@ -30,9 +30,6 @@ jobs:
       - name: make gradle wrapper executable
         if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
-      - name: fetch worldreset-api from JitPack
-        if: ${{ runner.os == 'Linux' }}
-        run: ./.github/scripts/jitpack-build.sh
       - name: build
         run: ./gradlew build
       - name: capture build artifacts

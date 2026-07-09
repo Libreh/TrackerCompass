@@ -14,7 +14,6 @@ subprojects {
         mavenLocal()
         maven { url 'https://maven.nucleoid.xyz' }
         maven { url 'https://maven.supersanta.me/snapshots' }
-        maven { url 'https://jitpack.io' }
     }
 
     dependencies {
