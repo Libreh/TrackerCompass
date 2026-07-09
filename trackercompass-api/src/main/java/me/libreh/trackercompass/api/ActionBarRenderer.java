@@ -34,7 +34,7 @@ public class ActionBarRenderer {
             return;
         }
 
-        player.connection.send(new ClientboundSetActionBarTextPacket(actionBarText));
+        player.connection.send(new ClientboundSetActionBarTextPacket(actionBarText != null ? actionBarText : Component.empty()));
     }
 
     public void onPlayerDisconnect(ServerPlayer player) {

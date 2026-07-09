@@ -5,8 +5,9 @@ import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassSavedData;
-import me.libreh.trackercompass.api.DimensionUtil;
-import net.minecraft.ChatFormatting;
+import me.libreh.trackercompass.compass.TrackerPlaceholders;
+import me.libreh.trackercompass.api.TrackerText;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class TrackerCompassGui extends SimpleGui {
@@ -30,7 +32,10 @@ public class TrackerCompassGui extends SimpleGui {
     public TrackerCompassGui(ServerPlayer player) {
         super(calculateMenuType(player), player, false);
         this.player = player;
-        this.setTitle(Component.literal("Track Player"));
+
+        TrackerText titleTemplate = TrackerText.of(ConfigManager.config().guiTitle);
+        Component resolvedTitle = titleTemplate.resolve(Map.of()).copy().withStyle(s -> s.withItalic(false));
+        this.setTitle(resolvedTitle);
 
         populateGui();
     }
@@ -71,7 +76,7 @@ public class TrackerCompassGui extends SimpleGui {
             }
         }
 
-        if (ConfigManager.config().showOfflinePlayersInGui) {
+        if (ConfigManager.config().showOfflinePlayers) {
             for (UUID offlineUuid : TrackerCompassSavedData.get(player.level().getServer()).getPlayerDimensionPositions().keySet()) {
                 if (!offlineUuid.equals(player.getUUID())) {
                     uuids.add(offlineUuid);
@@ -88,35 +93,31 @@ public class TrackerCompassGui extends SimpleGui {
         ItemStack item = new ItemStack(Items.PLAYER_HEAD);
 
         String playerName = getPlayerName(targetUuid);
-        item.set(DataComponents.CUSTOM_NAME,
-                Component.literal(playerName).withStyle(s -> s.withItalic(false).withColor(ChatFormatting.AQUA)));
+        ServerPlayer targetPlayer = player.level().getServer().getPlayerList().getPlayer(targetUuid);
+        BlockPos targetPos = targetPlayer != null ? targetPlayer.blockPosition() : null;
+
+        Map<String, Component> placeholders = TrackerPlaceholders.build(player, targetPlayer, targetPos, targetUuid, player.level().getServer());
+
+        TrackerText titleTemplate = TrackerText.of(ConfigManager.config().playerTitle);
+        placeholders.put("player", Component.literal(playerName));
+        Component title = titleTemplate.resolve(placeholders).copy().withStyle(s -> s.withItalic(false));
+        item.set(DataComponents.CUSTOM_NAME, title);
 
         item.set(DataComponents.PROFILE, ResolvableProfile.createUnresolved(playerName));
         item.set(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT.withHidden(DataComponents.PROFILE, true));
 
         List<Component> lore = new ArrayList<>();
+        for (String loreLine : ConfigManager.config().playerLoreLines) {
+            if (loreLine.isEmpty()) continue;
 
-        ServerPlayer targetPlayer = player.level().getServer().getPlayerList().getPlayer(targetUuid);
-        boolean isOnline = targetPlayer != null;
-
-        if (ConfigManager.config().showOfflinePlayersInGui) {
-            ChatFormatting formatting = isOnline ? ChatFormatting.GREEN : ChatFormatting.GRAY;
-            lore.add(Component.literal("Status: " + (isOnline ? "Online" : "Offline")).withStyle(s -> s.withColor(formatting).withItalic(false)));
-        }
-
-        if (isOnline) {
-            if (ConfigManager.config().showDimension) {
-                String dimension = DimensionUtil.getDimensionName(targetPlayer);
-                lore.add(Component.literal("Dimension: " + dimension).withStyle(s -> s.withColor(ChatFormatting.YELLOW).withItalic(false)));
-            }
-
-            if (ConfigManager.config().showDistance && targetPlayer.level() == this.player.level()) {
-                double distance = this.player.position().distanceTo(targetPlayer.position());
-                lore.add(Component.literal("Distance: " + (int)distance + "m").withStyle(s -> s.withColor(ChatFormatting.GOLD).withItalic(false)));
+            TrackerText parsed = TrackerText.of(loreLine);
+            if (!parsed.isEmpty()) {
+                Component resolved = parsed.resolve(placeholders).copy().withStyle(s -> s.withItalic(false));
+                if (!resolved.getString().isEmpty()) {
+                    lore.add(resolved);
+                }
             }
         }
-
-        lore.add(Component.literal("Click to track").withStyle(s -> s.withColor(ChatFormatting.BLUE).withItalic(false)));
 
         item.set(DataComponents.LORE, new ItemLore(lore));
         return item;
@@ -151,7 +152,7 @@ public class TrackerCompassGui extends SimpleGui {
                 TrackerCompassSavedData.get(player.level().getServer())
                         .setTargetPlayer(player.getUUID(), selectedUuid);
 
-                player.sendSystemMessage(Component.literal("Tracking: " + selectedName).withStyle(ChatFormatting.GOLD), false);
+                player.sendSystemMessage(Component.literal("Tracking: " + selectedName).withStyle(net.minecraft.ChatFormatting.GOLD), false);
 
                 this.close();
                 return true;

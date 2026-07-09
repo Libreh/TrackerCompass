@@ -23,6 +23,17 @@ dependencies {
     compileOnly "eu.pb4:sgui:${project.sgui_version}"
     localRuntime "eu.pb4:sgui:${project.sgui_version}"
     include "eu.pb4:sgui:${project.sgui_version}"
+
+    compileOnly "eu.pb4:placeholder-api:${project.placeholder_api_version}"
+    localRuntime "eu.pb4:placeholder-api:${project.placeholder_api_version}"
+    include "eu.pb4:placeholder-api:${project.placeholder_api_version}"
+
+    compileOnly "eu.pb4:predicate-api:${project.predicate_api_version}"
+    localRuntime "eu.pb4:predicate-api:${project.predicate_api_version}"
+    include "eu.pb4:predicate-api:${project.predicate_api_version}"
+
+    compileOnly "me.libreh:worldreset-api:${project.worldreset_api_version}"
+    localRuntime "me.libreh:worldreset-api:${project.worldreset_api_version}"
 }
 
 var isStable = project.is_stable == "true"

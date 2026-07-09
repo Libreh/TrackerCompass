@@ -11,6 +11,7 @@ subprojects {
     group = project.maven_group
 
     repositories {
+        mavenLocal()
         maven { url 'https://maven.nucleoid.xyz' }
         maven { url 'https://maven.supersanta.me/snapshots' }
     }

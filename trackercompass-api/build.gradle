@@ -11,4 +11,6 @@ loom {
 
 dependencies {
     compileOnly "net.casualchampionships:arcade-utils:${project.arcade_version}"
+    compileOnly "eu.pb4:placeholder-api:${project.placeholder_api_version}"
+    compileOnly "eu.pb4:predicate-api:${project.predicate_api_version}"
 }
