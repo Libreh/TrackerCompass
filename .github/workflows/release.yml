@@ -32,6 +32,14 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # worldreset-api isn't on a public maven, so build it into ~/.m2 first
+      - name: Publish worldreset-api to maven local
+        run: |
+          git clone --depth 1 --branch 26.1 https://github.com/Libreh/WorldReset.git ../WorldReset
+          cd ../WorldReset
+          chmod +x gradlew
+          ./gradlew :worldreset-api:publishToMavenLocal
+
       - name: Build with Gradle
         run: ./gradlew build
         env:

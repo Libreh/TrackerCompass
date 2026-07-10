@@ -30,8 +30,14 @@ jobs:
       - name: make gradle wrapper executable
         if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
-      - name: build
-        run: ./gradlew build
+      # worldreset-api isn't on a public maven, so build it into ~/.m2 first
+      - name: publish worldreset-api to maven local
+        shell: bash
+        run: |
+          git clone --depth 1 --branch 26.1 https://github.com/Libreh/WorldReset.git ../WorldReset
+          cd ../WorldReset
+          chmod +x gradlew
+          ./gradlew :worldreset-api:publishToMavenLocal
       - name: capture build artifacts
         if: ${{ runner.os == 'Linux' && matrix.java == '25' }} # Only upload artifacts built from latest java on one OS
         uses: actions/upload-artifact@v4
