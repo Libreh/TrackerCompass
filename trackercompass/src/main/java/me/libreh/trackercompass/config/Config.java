@@ -39,7 +39,7 @@ public class Config {
         playerLoreLines.add("<yellow>Click to track");
 
         trackerConditions.add(new TrackerCondition(
-            "selected_target",
+            TrackerCondition.SELECTED_TARGET_ID,
             BuiltinPredicates.alwaysTrue(),
             null,
             "${player}<red>${offline} <gray>${distance}m <aqua>${arrow} ${dimension}",

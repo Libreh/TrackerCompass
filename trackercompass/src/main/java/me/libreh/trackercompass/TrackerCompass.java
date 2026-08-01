@@ -1,13 +1,11 @@
 package me.libreh.trackercompass;
 
 import me.libreh.trackercompass.api.DimensionUtil;
-import me.libreh.trackercompass.api.PlayerDimensionPositions;
 import me.libreh.trackercompass.api.TargetPlaceholders;
 import me.libreh.trackercompass.api.TrackerCompassEvents;
 import me.libreh.trackercompass.api.TrackerCompassRegistry;
 import me.libreh.trackercompass.api.TrackerCondition;
 import me.libreh.trackercompass.api.TrackerTargetResolver;
-import me.libreh.trackercompass.api.TrackerText;
 import me.libreh.trackercompass.command.ToggleCommand;
 import me.libreh.trackercompass.command.TrackerCompassCommand;
 import me.libreh.trackercompass.compass.CompassActionBar;
@@ -26,9 +24,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -132,13 +128,12 @@ public class TrackerCompass implements ModInitializer {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             updatePosition(player);
 
-            var resolveResult = TrackerTargetResolver.resolve(
+            var resolveResult = TrackerTargetResolver.resolve(new TrackerTargetResolver.ResolveRequest(
                 player,
                 conditions,
                 server.getPlayerList().getPlayers(),
-                buildPositionLookup(server),
                 data::getTargetPlayer
-            );
+            ));
 
             if (resolveResult.isPresent()) {
                 var result = resolveResult.get();
@@ -155,7 +150,7 @@ public class TrackerCompass implements ModInitializer {
                     BlockPos targetPos = findTargetPos(storedTarget, player, server);
                     if (targetPos != null) {
                         TrackerCondition condition = conditions.stream()
-                            .filter(c -> c.id().equals("selected_target") && c.enabled())
+                            .filter(c -> c.id().equals(TrackerCondition.SELECTED_TARGET_ID) && c.enabled())
                             .findFirst()
                             .orElse(null);
                         if (condition != null) {
@@ -175,15 +170,6 @@ public class TrackerCompass implements ModInitializer {
         data.markDirtyIfNeeded();
     }
 
-    private Map<UUID, java.util.function.Supplier<BlockPos>> buildPositionLookup(MinecraftServer server) {
-        Map<UUID, java.util.function.Supplier<BlockPos>> lookup = new HashMap<>();
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            UUID uuid = player.getUUID();
-            lookup.put(uuid, player::blockPosition);
-        }
-        return lookup;
-    }
-
     public static void refreshActionBar(ServerPlayer player) {
         if (actionBar == null || data == null) return;
         MinecraftServer server = ((ServerLevel) player.level()).getServer();
@@ -194,15 +180,7 @@ public class TrackerCompass implements ModInitializer {
     }
 
     private static BlockPos findTargetPos(UUID targetUuid, ServerPlayer observer, MinecraftServer server) {
-        ResourceKey<Level> dimension = DimensionUtil.resolve(observer);
-
-        ServerPlayer target = server.getPlayerList().getPlayer(targetUuid);
-        if (target != null && DimensionUtil.resolve(target).equals(dimension)) {
-            return target.blockPosition();
-        }
-
-        PlayerDimensionPositions positions = data.getPlayerDimensionPositions().get(targetUuid);
-        return positions != null ? positions.getPosition(dimension) : null;
+        return TrackerTargetResolver.resolvePosition(observer, targetUuid, server, data.getPlayerDimensionPositions());
     }
 
     private void updatePosition(ServerPlayer player) {

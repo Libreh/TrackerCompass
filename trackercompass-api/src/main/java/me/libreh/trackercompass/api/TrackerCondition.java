@@ -12,6 +12,10 @@ public record TrackerCondition(
     int priority,
     boolean enabled
 ) {
+    // Reserved id: a condition with this id tracks the observer's pinned target (from the
+    // resolver's pinnedTargetLookup) instead of testing its predicate against candidates.
+    public static final String SELECTED_TARGET_ID = "selected_target";
+
     public TrackerCondition {
         if (condition == null) condition = BuiltinPredicates.alwaysFalse();
     }
