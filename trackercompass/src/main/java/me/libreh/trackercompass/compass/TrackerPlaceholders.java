@@ -8,6 +8,7 @@ import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassSavedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
@@ -43,15 +44,15 @@ public class TrackerPlaceholders {
                 boolean sameDimension = isOnline && DimensionUtil.resolve(target).equals(DimensionUtil.resolve(viewer));
                 if (isOnline && (!sameDimension || ConfigManager.config().showSameDimension)) {
                     String dimensionName = DimensionUtil.getDimensionName(target);
-                    String color = resolveDimensionColor(target);
+                    String color = DimensionUtil.resolveDimensionColor(target, ConfigManager.config().dimensionColors);
                     dimension = color + dimensionName;
                 } else if (!isOnline) {
                     PlayerDimensionPositions positions = TrackerCompassSavedData.get(server).getPlayerDimensionPositions().get(targetUuid);
                     if (positions != null) {
-                        net.minecraft.resources.ResourceKey<Level> lastDim = getLastKnownDimension(positions);
+                        ResourceKey<Level> lastDim = DimensionUtil.getLastKnownDimension(positions);
                         if (lastDim != null) {
                             String dimensionName = DimensionUtil.getDimensionName(lastDim);
-                            String color = resolveDimensionColor(lastDim);
+                            String color = DimensionUtil.resolveDimensionColor(lastDim, ConfigManager.config().dimensionColors);
                             dimension = color + dimensionName;
                         }
                     }
@@ -75,51 +76,4 @@ public class TrackerPlaceholders {
         return placeholders;
     }
 
-    private static String resolveDimensionColor(ServerPlayer target) {
-        var dimId = DimensionUtil.resolve(target).identifier();
-        String color = ConfigManager.config().dimensionColors.get(dimId.toString());
-        if (color != null) return color;
-
-        String path = dimId.getPath();
-        if (path.contains("overworld")) {
-            color = ConfigManager.config().dimensionColors.get("minecraft:overworld");
-        } else if (path.contains("nether")) {
-            color = ConfigManager.config().dimensionColors.get("minecraft:the_nether");
-        } else if (path.contains("end")) {
-            color = ConfigManager.config().dimensionColors.get("minecraft:the_end");
-        }
-        return color != null ? color : "<gray>";
-    }
-
-    private static String resolveDimensionColor(net.minecraft.resources.ResourceKey<Level> dimension) {
-        var dimId = dimension.identifier();
-        String color = ConfigManager.config().dimensionColors.get(dimId.toString());
-        if (color != null) return color;
-
-        String path = dimId.getPath();
-        if (path.contains("overworld")) {
-            color = ConfigManager.config().dimensionColors.get("minecraft:overworld");
-        } else if (path.contains("nether")) {
-            color = ConfigManager.config().dimensionColors.get("minecraft:the_nether");
-        } else if (path.contains("end")) {
-            color = ConfigManager.config().dimensionColors.get("minecraft:the_end");
-        }
-        return color != null ? color : "<gray>";
-    }
-
-    private static net.minecraft.resources.ResourceKey<Level> getLastKnownDimension(PlayerDimensionPositions positions) {
-        for (var entry : positions.getPositions().entrySet()) {
-            String path = entry.getKey().identifier().getPath();
-            if (path.contains("overworld")) return entry.getKey();
-        }
-        for (var entry : positions.getPositions().entrySet()) {
-            String path = entry.getKey().identifier().getPath();
-            if (path.contains("nether")) return entry.getKey();
-        }
-        for (var entry : positions.getPositions().entrySet()) {
-            String path = entry.getKey().identifier().getPath();
-            if (path.contains("end")) return entry.getKey();
-        }
-        return positions.getPositions().keySet().stream().findFirst().orElse(null);
-    }
 }
