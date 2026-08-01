@@ -13,9 +13,10 @@ import me.libreh.trackercompass.compass.CompassManager;
 import me.libreh.trackercompass.compass.TrackerCompassItem;
 import me.libreh.trackercompass.config.ConfigManager;
 import me.libreh.trackercompass.data.TrackerCompassSavedData;
-import me.libreh.worldreset.api.PlayerResetEvents;
 import me.libreh.trackercompass.gui.TrackerCompassGui;
+import me.libreh.trackercompass.integration.WorldResetIntegration;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -85,7 +86,9 @@ public class TrackerCompass implements ModInitializer {
 
         UseItemCallback.EVENT.register(this::onItemUse);
 
-        PlayerResetEvents.onAfterPlayerReset(TrackerCompass::syncCompass);
+        if (FabricLoader.getInstance().isModLoaded("worldreset")) {
+            WorldResetIntegration.register();
+        }
 	}
 
     private void onServerStarted(MinecraftServer server) {
