@@ -33,10 +33,10 @@ jobs:
         run: chmod +x gradlew
 
       # worldreset-api isn't on a public maven, so build it into ~/.m2 first.
-      # Clone the tag matching worldreset_api_version so releases don't track the moving 26.1 branch.
+      # Clone the tag matching worldreset_api_version so releases don't track the moving 26.2 branch.
       - name: Publish worldreset-api to maven local
         run: |
-          git clone --depth 1 --branch 0.2.1+26.1.2 https://github.com/Libreh/WorldReset.git ../WorldReset
+          git clone --depth 1 --branch 0.2.1+26.2 https://github.com/Libreh/WorldReset.git ../WorldReset
           cd ../WorldReset
           chmod +x gradlew
           ./gradlew :worldreset-api:publishToMavenLocal
